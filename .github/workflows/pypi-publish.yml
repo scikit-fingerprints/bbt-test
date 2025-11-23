@@ -1,0 +1,38 @@
+name: Publish Python package to PyPI
+
+on:
+  release:
+    types: [ published ]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      # set version (e.g. 1.2.3) from the latest Git tag on the master branch
+      - name: Set package release version
+        # :1 changes "v1.2.3" to "1.2.3", where "v1.2.3" is a tag string
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0)
+          uv version ${LATEST_TAG:1}
+        shell: bash
+
+      - name: Build and publish to PyPI
+        run: >-
+          uv build
+          && uv publish --token ${{ secrets.PYPI_API_TOKEN }}

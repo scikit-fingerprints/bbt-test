@@ -1,0 +1,52 @@
+[project]
+name = "bbt-test"
+version = "0.0.0" # version set dynamically in GitHub Actions from Git tags
+description = "Bayesian Bradley-Terry model implementation in PyMC"
+authors = [{ name = "AGH ML & Cheminformatics Lab", email = "praski@agh.edu.pl" }]
+keywords = ["bayesian", "bradley-terry model", "multi-model comparison", "multi-dataset comparison"]
+license = { text = "MIT" }
+readme = "README.md"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+]
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.0.0",
+    "pymc",
+    "tqdm",
+]
+
+[dependency-groups]
+dev = [
+    "coverage>=7.12.0",
+    "jupyter>=1.1.1",
+    "mypy>=1.18.2",
+    "pre-commit>=4.5.0",
+    "ruff>=0.14.6",
+    "seaborn>=0.13.2",
+]
+
+[tool.uv.build-backend]
+module-name = "bbttest"
+module-root = ""
+
+[build-system]
+requires = ["uv_build"]
+build-backend = "uv_build"
+
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
+explicit = true
