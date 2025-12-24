@@ -1,7 +1,9 @@
+from typing import Literal
+
 import pandas as pd
 
 from .py_bbt import PyBBT
-from typing import Literal
+
 
 def multiple_ropes_control_table(
     model: PyBBT,
