@@ -1,9 +1,6 @@
 include = [
     "pyproject.toml",
-    "benchmarking/**/*.ipynb",
-    "examples/**/*.py",
-    "skfp/**/*.py",
-    "tests/**/*.py",
+    "bbttest/**"
 ]
 exclude = [
     "docs/**"
