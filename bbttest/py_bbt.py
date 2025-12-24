@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 import numpy as np
 import pandas as pd
 
@@ -139,7 +141,7 @@ class PyBBT:
         rope_value: tuple[float, float] = (0.45, 0.55),
         control_model: str | None = None,
         selected_models: list[str] | None = None,
-        columns: list[ReportedProperty] = DEFAULT_PROPERTIES,
+        columns: Sequence[ReportedProperty | str] = DEFAULT_PROPERTIES,
         hdi_proba: float = 0.89,
         round_ndigits: int | None = 2,
     ) -> pd.DataFrame:
@@ -196,7 +198,11 @@ class PyBBT:
         out_table["strong_interpretation_raw"] = np.where(
             out_table["mean"] > self._STRONG_INTERPRETATION_BETTER_THRESHOLD,
             out_table["left_model"] + ">",
-            np.where(out_table["mean"] <= self._STRONG_INTERPRETATION_EQUAL_THRESHOLD, "=", "?"),
+            np.where(
+                out_table["mean"] <= self._STRONG_INTERPRETATION_EQUAL_THRESHOLD,
+                "=",
+                "?",
+            ),
         )
         out_table["strong_interpretation"] = np.where(
             out_table["strong_interpretation_raw"].str.endswith(">"),

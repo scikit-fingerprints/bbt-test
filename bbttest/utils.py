@@ -68,12 +68,22 @@ def multiple_ropes_control_table(
             else:
                 unknown_models.append(row["left_model"])
 
-        rows.append({
-            "rope": rope,
-            "better_models": better_models if return_as_array else join_char.join(better_models),
-            "equivalent_models": equivalent_models if return_as_array else join_char.join(equivalent_models),
-            "worse_models": worse_models if return_as_array else join_char.join(worse_models),
-            "unknown_models": unknown_models if return_as_array else join_char.join(unknown_models),
-        })
+        rows.append(
+            {
+                "rope": rope,
+                "better_models": better_models
+                if return_as_array
+                else join_char.join(better_models),
+                "equivalent_models": equivalent_models
+                if return_as_array
+                else join_char.join(equivalent_models),
+                "worse_models": worse_models
+                if return_as_array
+                else join_char.join(worse_models),
+                "unknown_models": unknown_models
+                if return_as_array
+                else join_char.join(unknown_models),
+            }
+        )
 
     return pd.DataFrame(rows)
