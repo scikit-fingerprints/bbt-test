@@ -8,9 +8,12 @@ wheels/
 
 # Dev cache
 .ruff_cache/
+.pytest_cache/
 
 # Virtual environments
 .venv
 
 # IDE files
 .idea/
+.vscode/
+

@@ -1,5 +1,5 @@
 import logging as log
-from collections.abc import Generator
+from collections.abc import Generator, Iterable
 
 import arviz as az
 import numpy as np
@@ -158,9 +158,9 @@ def _construct_win_table(
 
 def _get_pwin(
     bbt_result: az.InferenceData,
-    alg_names: list[str] | None = None,
+    alg_names: Iterable[str] | None = None,
     control: str | None = None,
-    selected: list[str] | None = None,
+    selected: Iterable[str] | None = None,
 ):
     def _pairwise_prob(strength_i, strength_j):
         return strength_i / (strength_i + strength_j)

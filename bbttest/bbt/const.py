@@ -14,16 +14,17 @@ class HyperPrior(str, Enum):
     NORMAL = "normal"
 
     def _get_pymc_dist(self, scale, name="sigma"):
-        if self == HyperPrior.LOG_NORMAL:
-            return LogNormal(name, mu=0, sigma=1)
-        elif self == HyperPrior.LOG_NORMAL_SCALED:
-            return LogNormal(name, mu=0, sigma=scale)
-        elif self == HyperPrior.CAUCHY:
-            return Cauchy(name, alpha=0, beta=scale)
-        elif self == HyperPrior.NORMAL:
-            return Normal(name, mu=0, sigma=scale)
-        else:
-            raise ValueError(f"Unsupported hyperprior: {self}")
+        match self:
+            case HyperPrior.LOG_NORMAL:
+                return LogNormal(name, mu=0, sigma=1)
+            case HyperPrior.LOG_NORMAL_SCALED:
+                return LogNormal(name, mu=0, sigma=scale)
+            case HyperPrior.CAUCHY:
+                return Cauchy(name, alpha=0, beta=scale)
+            case HyperPrior.NORMAL:
+                return Normal(name, mu=0, sigma=scale)
+            case _:
+                raise ValueError(f"Unsupported hyperprior: {self}")
 
 
 class ReportedProperty(str, Enum):

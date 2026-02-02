@@ -1,4 +1,5 @@
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -75,14 +76,18 @@ class PyBBT:
     def __init__(
         self,
         local_rope_value: float | None = None,
-        tie_solver: TieSolver = TieSolver.SPREAD,
-        hyper_prior: HyperPrior = HyperPrior.LOG_NORMAL,
+        tie_solver: TieSolver | str = TieSolver.SPREAD,
+        hyper_prior: HyperPrior | str = HyperPrior.LOG_NORMAL,
         scale: float = 1.0,
     ):
         self._local_rope_value = local_rope_value
-        self._tie_solver = tie_solver
-        self._use_davidson = tie_solver == TieSolver.DAVIDSON
-        self._hyper_prior = hyper_prior
+        self._tie_solver = (
+            TieSolver(tie_solver) if isinstance(tie_solver, str) else tie_solver
+        )
+        self._use_davidson = self._tie_solver == TieSolver.DAVIDSON
+        self._hyper_prior = (
+            HyperPrior(hyper_prior) if isinstance(hyper_prior, str) else hyper_prior
+        )
         self._scale = scale
         self._fitted = False
 
@@ -140,8 +145,8 @@ class PyBBT:
         self,
         rope_value: tuple[float, float] = (0.45, 0.55),
         control_model: str | None = None,
-        selected_models: list[str] | None = None,
-        columns: Sequence[ReportedProperty | str] = DEFAULT_PROPERTIES,
+        selected_models: Iterable[str] | None = None,
+        columns: Iterable[ReportedProperty | str] = DEFAULT_PROPERTIES,
         hdi_proba: float = 0.89,
         round_ndigits: int | None = 2,
     ) -> pd.DataFrame:
@@ -165,7 +170,7 @@ class PyBBT:
             bbt_result=self._fit_posterior,
             alg_names=self._algorithms,
             control=control_model,
-            selected=selected_models,
+            selected=list(selected_models) if selected_models is not None else None,
         )
         out_table = pd.DataFrame({"pair": names})
         out_table["left_model"] = out_table["pair"].str.split(">").str[0].str.strip()
@@ -227,3 +232,88 @@ class PyBBT:
                     f"Column {col} is not available in the posterior table."
                 )
         return out_table[["pair", *columns]]
+
+    def rope_comparison_control_table(
+        self,
+        rope_values: Sequence[tuple[float, float]],
+        control_model: str,
+        selected_models: Sequence[str] | None = None,
+        interpretation: Literal["weak", "strong"] = "weak",
+        return_as_array: bool = False,
+        join_char: str = ", ",
+    ) -> pd.DataFrame:
+        """
+        Construct a table comparing models against predefined control models across multiple ROPEs.
+        The output table contains N rows (one per ROPE) and 5 columns
+        (rope value, better models, equivalent models, worse models, unknown models).
+
+        Args:
+            model: Fitted PyBBT model.
+            ropes: List of ROPE tuples to evaluate.
+            interpretation: Type of interpretation to use ("weak" or "strong"), see [1]_.
+            return_as_array: Whether the individual cells should contain model names as list or joined into single string.
+            join_char: Character(s) used to join multiple model names in a single cell.
+
+        Returns
+        -------
+            pd.DataFrame: Table comparing models against control models across multiple ROPEs.
+
+        References
+        ----------
+        .. [1] `Jacques Wainer
+            "A Bayesian Bradley-Terry model to compare multiple ML algorithms on multiple data sets"
+            Journal of Machine Learning Research 24 (2023): 1-34
+            <http://jmlr.org/papers/v24/22-0907.html>`_
+        """
+        self._check_if_fitted()
+        records = []
+        for rope in rope_values:
+            posterior_df = self.posterior_table(
+                rope_value=rope,
+                control_model=control_model,
+                selected_models=selected_models,
+            )
+            better_models: list[str] = []
+            equivalent_models: list[str] = []
+            worse_models: list[str] = []
+            unknown_models: list[str] = []
+            for _, row in posterior_df.iterrows():
+                interpretation_col = (
+                    "weak_interpretation"
+                    if interpretation == "weak"
+                    else "strong_interpretation"
+                )
+                if row[interpretation_col] == f"{row['left_model']} better":
+                    better_models.append(row["left_model"])
+                elif row[interpretation_col] == "Equivalent":
+                    equivalent_models.append(row["left_model"])
+                elif row[interpretation_col] == "Unknown":
+                    unknown_models.append(row["left_model"])
+                else:
+                    worse_models.append(row["left_model"])
+            if not return_as_array:
+                better_models_str = join_char.join(better_models)
+                equivalent_models_str = join_char.join(equivalent_models)
+                worse_models_str = join_char.join(worse_models)
+                unknown_models_str = join_char.join(unknown_models)
+                records.append(
+                    {
+                        "rope_value": rope,
+                        "better_models": better_models_str,
+                        "equivalent_models": equivalent_models_str,
+                        "worse_models": worse_models_str,
+                        "unknown_models": unknown_models_str,
+                    }
+                )
+            else:
+                records.append(
+                    {
+                        "rope_value": rope,
+                        "better_models": better_models,
+                        "equivalent_models": equivalent_models,
+                        "worse_models": worse_models,
+                        "unknown_models": unknown_models,
+                    }
+                )
+        result_df = pd.DataFrame.from_records(records)
+        return result_df
