@@ -225,7 +225,7 @@ class PyBBT:
         out_table["delta"] = out_table["hdi_high"] - out_table["hdi_low"]
 
         if round_ndigits is not None:
-            return out_table.round(round_ndigits)
+            return out_table.round(round_ndigits)[["pair", *columns]]
         for col in columns:
             if col not in out_table.columns:
                 raise ValueError(
@@ -272,6 +272,11 @@ class PyBBT:
                 rope_value=rope,
                 control_model=control_model,
                 selected_models=selected_models,
+                columns=[
+                    ReportedProperty.LEFT_MODEL,
+                    ReportedProperty.WEAK_INTERPRETATION,
+                    ReportedProperty.STRONG_INTERPRETATION,
+                ],
             )
             better_models: list[str] = []
             equivalent_models: list[str] = []

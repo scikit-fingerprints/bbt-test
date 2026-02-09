@@ -183,6 +183,9 @@ def _get_pwin(
     # Filter by selected algorithms if specified
     if selected is not None:
         selected_set = set(selected)
+        if control not in selected_set and control is not None:
+            selected_set.add(control)
+
         indices = [i for i, name in enumerate(ordered_names) if name in selected_set]
         ordered_names = ordered_names[indices]
         strengths = strengths[:, indices]

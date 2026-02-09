@@ -32,6 +32,8 @@ class ReportedProperty(str, Enum):
     Enum containing properties that can be reported from BBT results.
     """
 
+    LEFT_MODEL = "left_model"
+    RIGHT_MODEL = "right_model"
     MEDIAN = "median"
     MEAN = "mean"
     HDI_LOW = "hdi_low"
@@ -66,3 +68,5 @@ DEFAULT_PROPERTIES = (
     ReportedProperty.IN_ROPE,
     ReportedProperty.WEAK_INTERPRETATION,
 )
+
+ALL_PROPERTIES = tuple(ReportedProperty)

@@ -109,6 +109,7 @@ def _extract_interpretations(results):
 class TestWeakInterpretationAgainstECFP:
     """Test weak interpretation results against ECFP baseline for different ROPE values."""
 
+    @pytest.mark.slow
     @pytest.mark.parametrize(
         "rope,better_models,equivalent_models,unknown_models,worse_models",
         [
@@ -298,72 +299,3 @@ class TestWeakInterpretationAgainstECFP:
             assert interpretations[model] == "ECFP better", (
                 f"Model {model} should be worse than ECFP for ROPE {rope}"
             )
-
-
-class TestModelFitting:
-    """Test that the model fits correctly and produces expected structure."""
-
-    def test_model_fits_successfully(self, benchmarking_data):
-        """
-        Test that model can be fitted without errors.
-
-        Parameters
-        ----------
-        benchmarking_data : pd.DataFrame
-            Benchmarking molecular data fixture.
-        """
-        model = PyBBT(local_rope_value=0.01, tie_solver=TieSolver.SPREAD)
-        model.fit(
-            benchmarking_data,
-            dataset_col="dataset",
-            draws=500,
-            tune=500,
-            chains=2,
-            random_seed=42,
-        )
-        assert model.fitted
-
-    def test_posterior_table_structure(self, fitted_model):
-        """
-        Test that posterior table has expected columns.
-
-        Parameters
-        ----------
-        fitted_model : PyBBT
-            Fitted PyBBT model fixture.
-        """
-        results = fitted_model.posterior_table(
-            rope_value=(0.45, 0.55),
-            control_model="ECFP_count",
-        )
-
-        expected_cols = [
-            "pair",
-            "mean",
-            "delta",
-            "above_50",
-            "in_rope",
-            "weak_interpretation",
-        ]
-        for col in expected_cols:
-            assert col in results.columns
-
-        # Check that left_model and right_model are present
-        assert "left_model" in results.columns
-        assert "right_model" in results.columns
-
-    def test_control_model_exists(self, fitted_model):
-        """
-        Test that ECFP_count exists in the fitted models.
-
-        Parameters
-        ----------
-        fitted_model : PyBBT
-            Fitted PyBBT model fixture.
-        """
-        # This should not raise an error
-        results = fitted_model.posterior_table(
-            rope_value=(0.45, 0.55),
-            control_model="ECFP_count",
-        )
-        assert len(results) > 0

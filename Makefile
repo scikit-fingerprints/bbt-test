@@ -9,9 +9,13 @@ setup:  ## Install development dependencies
 	uv sync --group dev --group test
 	uv run pre-commit install
 
-test:  ## Run tests
+test:  ## Run tests without regression
 	uv run ruff check
 	uv run pytest tests
+
+full-test:
+	uv run ruff check
+	uv run pytest tests -m "slow"
 
 test-coverage:  ## Run tests and calculate test coverage
 	uv run pytest --cov=bbttest tests

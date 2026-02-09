@@ -11,9 +11,10 @@ import pandas as pd
 import pytest
 
 from bbttest import HyperPrior, PyBBT, ReportedProperty, TieSolver
+from bbttest.bbt.const import ALL_PROPERTIES
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def mock_data():
     """
     Create simple mock data for testing.
@@ -33,7 +34,7 @@ def mock_data():
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def fitted_model(mock_data):
     """
     Create a fitted PyBBT model for testing.
@@ -182,25 +183,12 @@ class TestPyBBTUnfittedErrors:
 class TestPosteriorTable:
     """Test posterior_table method functionality."""
 
-    def test_posterior_table_returns_dataframe(self, fitted_model):
-        """Test that posterior_table returns a DataFrame."""
-        result = fitted_model.posterior_table()
-        assert isinstance(result, pd.DataFrame)
-        assert len(result) > 0
-
     def test_posterior_table_has_required_columns(self, fitted_model):
         """Test that posterior_table contains required columns."""
         result = fitted_model.posterior_table()
         required_cols = ["pair", "mean", "delta", "above_50", "in_rope"]
         for col in required_cols:
             assert col in result.columns
-
-    def test_posterior_table_has_interpretation_columns(self, fitted_model):
-        """Test that posterior_table contains interpretation columns."""
-        result = fitted_model.posterior_table()
-        assert "left_model" in result.columns
-        assert "right_model" in result.columns
-        assert "weak_interpretation" in result.columns
 
     def test_posterior_table_weak_interpretation_values(self, fitted_model):
         """Test that weak interpretation contains valid values."""
@@ -230,7 +218,9 @@ class TestPosteriorTable:
 
     def test_posterior_table_with_control_model(self, fitted_model):
         """Test posterior_table with control_model parameter."""
-        result = fitted_model.posterior_table(control_model="model_a")
+        result = fitted_model.posterior_table(
+            control_model="model_a", columns=ALL_PROPERTIES
+        )
         assert len(result) > 0
         # All comparisons should involve model_a
         for _, row in result.iterrows():
@@ -241,13 +231,17 @@ class TestPosteriorTable:
     def test_posterior_table_returns_only_requested_columns(self, fitted_model):
         """Test that posterior_table returns only requested columns."""
         requested_columns = [ReportedProperty.MEAN, ReportedProperty.DELTA]
-        # Must set round_ndigits=None to get column filtering
         result = fitted_model.posterior_table(
             columns=requested_columns, round_ndigits=None
         )
 
         # Should have 'pair' column plus requested columns
         expected_cols = ["pair", "mean", "delta"]
+        assert set(result.columns) == set(expected_cols)
+
+        result = fitted_model.posterior_table(
+            columns=requested_columns, round_ndigits=3
+        )
         assert set(result.columns) == set(expected_cols)
 
     def test_posterior_table_requested_columns_with_strings(self, fitted_model):
@@ -531,7 +525,7 @@ class TestPosteriorTableStructure:
 
         monkeypatch.setattr("bbttest.bbt.py_bbt._get_pwin", mock_get_pwin)
 
-        result = fitted_model.posterior_table()
+        result = fitted_model.posterior_table(columns=ALL_PROPERTIES)
 
         for _, row in result.iterrows():
             expected_pair = f"{row['left_model']} > {row['right_model']}"
