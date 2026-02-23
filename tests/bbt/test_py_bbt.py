@@ -11,7 +11,7 @@ import pandas as pd
 import pytest
 
 from bbttest import HyperPrior, PyBBT, ReportedProperty, TieSolver
-from bbttest.bbt.const import ALL_PROPERTIES
+from bbttest.bbt.params import ALL_PROPERTIES
 
 
 @pytest.fixture(scope="module")

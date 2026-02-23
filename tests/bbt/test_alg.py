@@ -7,7 +7,7 @@ import pytest
 from bbttest.bbt.alg import (
     _construct_win_table,
 )
-from bbttest.bbt.const import TieSolver
+from bbttest.bbt.params import TieSolver
 
 SCORES_1 = pd.DataFrame(
     {

@@ -35,7 +35,7 @@ import pandas as pd
 import pytest
 
 from bbttest import PyBBT, TieSolver
-from bbttest.bbt.const import DEFAULT_PROPERTIES, ReportedProperty
+from bbttest.bbt.params import DEFAULT_PROPERTIES, ReportedProperty
 
 
 @pytest.fixture(scope="module")
