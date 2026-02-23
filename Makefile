@@ -11,11 +11,11 @@ setup:  ## Install development dependencies
 
 test:  ## Run tests without regression
 	uv run ruff check
-	uv run pytest tests
+	uv run pytest tests -m "not slow"
 
 full-test:
 	uv run ruff check
-	uv run pytest tests -m "slow"
+	uv run pytest tests
 
 test-coverage:  ## Run tests and calculate test coverage
 	uv run pytest --cov=bbttest tests

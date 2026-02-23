@@ -35,6 +35,7 @@ import pandas as pd
 import pytest
 
 from bbttest import PyBBT, TieSolver
+from bbttest.bbt.const import DEFAULT_PROPERTIES, ReportedProperty
 
 
 @pytest.fixture(scope="module")
@@ -272,6 +273,8 @@ class TestWeakInterpretationAgainstECFP:
         results = fitted_model.posterior_table(
             rope_value=rope,
             control_model="ECFP_count",
+            columns=list(DEFAULT_PROPERTIES)
+            + [ReportedProperty.LEFT_MODEL, ReportedProperty.RIGHT_MODEL],
         )
 
         interpretations = _extract_interpretations(results)

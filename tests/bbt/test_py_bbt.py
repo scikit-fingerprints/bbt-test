@@ -381,8 +381,6 @@ class TestRopeComparisonControlTable:
                 # Found the custom separator, test passes
                 assert True
                 return
-        # If no separator found, that's also fine (might have 0 or 1 models in each category)
-        assert True
 
     def test_rope_comparison_multiple_ropes(self, fitted_model):
         """Test rope_comparison_control_table with multiple ROPE values."""
