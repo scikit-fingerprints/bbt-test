@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 
 from .alg import _construct_win_table, _get_pwin, _hdi
-from .const import DEFAULT_PROPERTIES, HyperPrior, ReportedProperty, TieSolver
 from .model import _mcmcbbt_pymc
+from .params import DEFAULT_PROPERTIES, HyperPrior, ReportedProperty, TieSolver
 
 
 class PyBBT:
@@ -42,13 +42,17 @@ class PyBBT:
     scale: float, default 1.0
         The scale parameter for the hyper prior distribution. Ignored if the HyperPrior is LOG_NORMAL.
 
+    maximize: bool, default True
+        Whether higher scores indicate better performance (e.g. accuracy/f1). If using a metric where the goal is to
+        minimize the score (e.g. RMSE) set this to False.
+
     Attributes
     ----------
     fitted: bool
         Whether the model has been fitted.
 
-    Examlples
-    ---------
+    Examples
+    --------
     >>> import pandas as pd
     >>> from bbttest import PyBBT, TieSolver
     >>> data = pd.DataFrame({
@@ -78,6 +82,7 @@ class PyBBT:
         local_rope_value: float | None = None,
         tie_solver: TieSolver | str = TieSolver.SPREAD,
         hyper_prior: HyperPrior | str = HyperPrior.LOG_NORMAL,
+        maximize: bool = True,
         scale: float = 1.0,
     ):
         self._local_rope_value = local_rope_value
@@ -88,6 +93,7 @@ class PyBBT:
         self._hyper_prior = (
             HyperPrior(hyper_prior) if isinstance(hyper_prior, str) else hyper_prior
         )
+        self._maximize = maximize
         self._scale = scale
         self._fitted = False
 
@@ -127,6 +133,7 @@ class PyBBT:
             dataset_col=dataset_col,
             local_rope_value=self._local_rope_value,
             tie_solver=self._tie_solver,
+            maximize=self._maximize,
         )
 
         self._fit_posterior = _mcmcbbt_pymc(

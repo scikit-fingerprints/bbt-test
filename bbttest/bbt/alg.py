@@ -1,4 +1,5 @@
 import logging as log
+import warnings
 from collections.abc import Generator, Iterable
 
 import arviz as az
@@ -6,7 +7,8 @@ import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
 
-from .const import TieSolver
+from .const import UNNAMED_COLUMNS_WARNING_TEMPLATE
+from .params import TieSolver
 
 ALG1_COL = 2
 ALG2_COL = 3
@@ -125,14 +127,27 @@ def _construct_win_table(
     dataset_col: str | int | None,
     local_rope_value: float | None,
     tie_solver: TieSolver,
+    maximize: bool,
 ) -> tuple[np.ndarray, list[str]]:
     # Extract algorithm names
-    algorithms_names = set(data.columns.tolist())
+    algorithms_names = data.columns.tolist()
     if isinstance(dataset_col, int):
         dataset_col = data.columns[dataset_col]
     if dataset_col is not None:
-        algorithms_names.discard(dataset_col)
-    algorithms_names = list(algorithms_names)
+        algorithms_names.remove(dataset_col)
+
+    data = data.copy()
+    if not maximize:
+        data.loc[:, algorithms_names] = -1 * data[algorithms_names]
+
+    if any("Unnamed" in col for col in algorithms_names):
+        warnings.warn(
+            UNNAMED_COLUMNS_WARNING_TEMPLATE.format(
+                algorithms_names=algorithms_names,
+                dataset_col=dataset_col,
+            ),
+            UserWarning,
+        )
 
     if dataset_col is None or data.shape[0] == data[dataset_col].nunique():
         table = _construct_no_paired(

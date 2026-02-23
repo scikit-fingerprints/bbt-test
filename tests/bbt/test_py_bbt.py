@@ -11,7 +11,7 @@ import pandas as pd
 import pytest
 
 from bbttest import HyperPrior, PyBBT, ReportedProperty, TieSolver
-from bbttest.bbt.const import ALL_PROPERTIES
+from bbttest.bbt.params import ALL_PROPERTIES
 
 
 @pytest.fixture(scope="module")
@@ -136,6 +136,7 @@ class TestPyBBTInitialization:
         assert model._tie_solver == TieSolver.SPREAD
         assert model._hyper_prior == HyperPrior.LOG_NORMAL
         assert model._scale == 1.0
+        assert model._maximize
         assert not model.fitted
 
 

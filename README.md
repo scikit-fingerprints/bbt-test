@@ -57,6 +57,20 @@ model = PyBBT(
 )
 ```
 
+#### Evaluating BBT when reporting errors
+
+By default BBT assumes that the goal of the evaluation is to maximize the metric (e.g. when reporting F1 score or AUROC). In cases, when metrics reported in the dataframe should be minimized (e.g. RMSE), you can set the parameter `maximize` in `PyBBT` to False:
+
+```python
+model = PyBBT(
+    local_rope_value=0.01,
+    maximize=False, # Set to False if the metric should be minimized
+).fit(
+    df,
+    dataset_col="dataset",
+)
+```
+
 ### Paired posterior fitting
 
 PyBBT model support two variants of input data for paired case, either a single dataframe with multiple rows per algorithm per dataset, or a pair of dataframes, one defining mean performance per algorithm, and the second with standard deviations.

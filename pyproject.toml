@@ -43,6 +43,11 @@ test = [
     "mypy",
 ]
 
+[tool.pytest]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+
 [tool.mypy]
 python_version = "3.11"
 check_untyped_defs = true  # check all functions, this fixes some tests
