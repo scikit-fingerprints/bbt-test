@@ -80,8 +80,6 @@ class TestConstructTable:
             maximize=maximize,
         )
 
-        print(alg_names)
-
         # Then
         np.testing.assert_array_almost_equal(result_table, expected_table)
 

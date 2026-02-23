@@ -3,7 +3,7 @@ import numpy as np
 import pymc as pm
 import pytensor.tensor as pt
 
-from .const import HyperPrior
+from .params import HyperPrior
 
 
 def _build_bbt_model(

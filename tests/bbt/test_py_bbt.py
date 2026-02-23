@@ -136,6 +136,7 @@ class TestPyBBTInitialization:
         assert model._tie_solver == TieSolver.SPREAD
         assert model._hyper_prior == HyperPrior.LOG_NORMAL
         assert model._scale == 1.0
+        assert model._maximize
         assert not model.fitted
 
 

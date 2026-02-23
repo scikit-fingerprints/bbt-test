@@ -7,7 +7,8 @@ import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
 
-from .const import TieSolver
+from .const import UNNAMED_COLUMNS_WARNING_TEMPLATE
+from .params import TieSolver
 
 ALG1_COL = 2
 ALG2_COL = 3
@@ -141,11 +142,10 @@ def _construct_win_table(
 
     if any("Unnamed" in col for col in algorithms_names):
         warnings.warn(
-            f"""
-            Some algorithm names are unnamed. This may lead to issues in the win table construction.
-            Algorithm names extracted: {algorithms_names}
-            Dataset column: {dataset_col}
-            """,
+            UNNAMED_COLUMNS_WARNING_TEMPLATE.format(
+                algorithms_names=algorithms_names,
+                dataset_col=dataset_col,
+            ),
             UserWarning,
         )
 

@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 
 from .alg import _construct_win_table, _get_pwin, _hdi
-from .const import DEFAULT_PROPERTIES, HyperPrior, ReportedProperty, TieSolver
 from .model import _mcmcbbt_pymc
+from .params import DEFAULT_PROPERTIES, HyperPrior, ReportedProperty, TieSolver
 
 
 class PyBBT:
