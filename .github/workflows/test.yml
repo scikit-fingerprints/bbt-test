@@ -36,8 +36,7 @@ jobs:
           key: ${{ matrix.os }}-venv-${{ matrix.python-version }}-${{ hashFiles('**/uv.lock') }}
 
       - name: Install the project dependencies
-        run: uv sync --group test --python "$(python -c 'import sys; print(sys.executable)')"
-        shell: bash
+        run: uv sync --group test
 
       - name: Check pre-commit
         run: uv run pre-commit run --all-files

@@ -87,28 +87,33 @@ Once you obtained a fitted PyBBT model, you can generate statistic dataframe con
 
 ```python
 
-stats_df = model.get_stats_dataframe(
+stats_df = model.posterior_table(
     rope_value=(0.45, 0.55), # Defines ROPE of hypothesis for interpretations
     control_model="alg1", # If provided, only hypotheses comparing to control_model will be included
-    selected_models=["alg2", "alg3"], # If provided, only hypotheses comparing selected_models will be included
+    selected_models=["alg2"], # If provided, only hypotheses comparing selected_models will be included
 )
 
 print(stats_df)
+
+          pair  mean  delta  above_50  in_rope weak_interpretation
+0  alg1 > alg2  0.63   0.53      0.75     0.19             Unknown
 ```
 
 Additionally, you can generate multiple hypothesis interpretations regarding control model for different ROPE values:
 
 ```python
-from bbttest import multiple_ropes_control_table
-
-stats_df = multiple_ropes_control_table(
-    model,
-    ropes=[(0.4, 0.6), (0.45, 0.55), (0.48, 0.52)],
+stats_df = model.rope_comparison_control_table(
+    rope_values=[(0.4, 0.6), (0.45, 0.55), (0.48, 0.52)],
     control_model="alg1",
-    interpretation_type="weak",
+    interpretation="weak",
 )
 
 print(stats_df)
+
+rope_value better_models equivalent_models worse_models unknown_models
+0    (0.4, 0.6)                                                  alg3, alg1
+1  (0.45, 0.55)                                                  alg3, alg1
+2  (0.48, 0.52)                                                  alg3, alg1
 ```
 
 ## License

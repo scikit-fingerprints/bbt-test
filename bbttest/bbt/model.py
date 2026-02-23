@@ -128,7 +128,7 @@ def _mcmcbbt_pymc(
         sample_kwargs = {
             k: v
             for k, v in kwargs.items()
-            if k in ["draws", "tune", "chains", "cores", "target_accept"]
+            if k in ["draws", "tune", "chains", "cores", "target_accept", "random_seed"]
         }
         fit = pm.sample(**sample_kwargs)
 
