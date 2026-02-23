@@ -59,7 +59,7 @@ model = PyBBT(
 
 #### Evaluating BBT when reporting errors
 
-By default BBT assumes that the goal of the evaluation is to maximize the metric (e.g. when reporting F1 score or AUROC). In cases, when metrics reported in the dataframe should be minimzed (e.g. RMSE), you can set the parameter `maximize` in `PyBBT` to False:
+By default BBT assumes that the goal of the evaluation is to maximize the metric (e.g. when reporting F1 score or AUROC). In cases, when metrics reported in the dataframe should be minimized (e.g. RMSE), you can set the parameter `maximize` in `PyBBT` to False:
 
 ```python
 model = PyBBT(

@@ -51,8 +51,8 @@ class PyBBT:
     fitted: bool
         Whether the model has been fitted.
 
-    Examlples
-    ---------
+    Examples
+    --------
     >>> import pandas as pd
     >>> from bbttest import PyBBT, TieSolver
     >>> data = pd.DataFrame({

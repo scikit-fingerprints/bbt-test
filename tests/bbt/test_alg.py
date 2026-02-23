@@ -65,7 +65,7 @@ class TestConstructTable:
     def test_construct_win_table(
         self,
         data: pd.DataFrame,
-        local_rope_value: float,
+        local_rope_value: float | None,
         maximize: bool,
         expected_table: np.ndarray,
     ):
