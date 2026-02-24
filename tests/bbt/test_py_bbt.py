@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from bbttest import HyperPrior, PyBBT, ReportedProperty, TieSolver
-from bbttest.bbt.params import ALL_PROPERTIES
+from bbttest import PyBBT
+from bbttest.bbt._types import ALL_PROPERTIES_COLUMNS
 
 
 @pytest.fixture(scope="module")
@@ -49,7 +49,7 @@ def fitted_model(mock_data):
     PyBBT
         Fitted PyBBT model instance.
     """
-    model = PyBBT(local_rope_value=0.01, tie_solver=TieSolver.SPREAD)
+    model = PyBBT(local_rope_value=0.01, tie_solver="spread")
     model.fit(
         mock_data,
         dataset_col="dataset",
@@ -68,13 +68,13 @@ class TestPyBBTInitialization:
         """Test that PyBBT can be initialized with enum parameters."""
         model = PyBBT(
             local_rope_value=0.01,
-            tie_solver=TieSolver.SPREAD,
-            hyper_prior=HyperPrior.LOG_NORMAL,
+            tie_solver="spread",
+            hyper_prior="log_normal",
             scale=1.0,
         )
         assert model._local_rope_value == 0.01
-        assert model._tie_solver == TieSolver.SPREAD
-        assert model._hyper_prior == HyperPrior.LOG_NORMAL
+        assert model._tie_solver == "spread"
+        assert model._hyper_prior == "log_normal"
         assert model._scale == 1.0
         assert not model.fitted
 
@@ -83,58 +83,22 @@ class TestPyBBTInitialization:
         model = PyBBT(
             local_rope_value=0.01,
             tie_solver="spread",
-            hyper_prior="logNormal",
+            hyper_prior="log_normal",
             scale=1.0,
         )
         # Verify string values are accepted and work correctly
         assert model._local_rope_value == 0.01
-        assert model._tie_solver == TieSolver.SPREAD
-        assert model._hyper_prior == HyperPrior.LOG_NORMAL
+        assert model._tie_solver == "spread"
+        assert model._hyper_prior == "log_normal"
         assert model._scale == 1.0
         assert not model.fitted
-
-    @pytest.mark.parametrize(
-        "arg, expected",
-        [
-            ("add", TieSolver.ADD),
-            ("spread", TieSolver.SPREAD),
-            ("forget", TieSolver.FORGET),
-            ("davidson", TieSolver.DAVIDSON),
-            (TieSolver.ADD, TieSolver.ADD),
-            (TieSolver.SPREAD, TieSolver.SPREAD),
-            (TieSolver.FORGET, TieSolver.FORGET),
-            (TieSolver.DAVIDSON, TieSolver.DAVIDSON),
-        ],
-    )
-    def test_init_with_different_tie_solvers(self, arg, expected):
-        """Test initialization with different TieSolver values."""
-        model = PyBBT(tie_solver=arg)
-        assert model._tie_solver == expected
-
-    @pytest.mark.parametrize(
-        "arg, expected",
-        [
-            ("logNormal", HyperPrior.LOG_NORMAL),
-            ("logNormalScaled", HyperPrior.LOG_NORMAL_SCALED),
-            ("cauchy", HyperPrior.CAUCHY),
-            ("normal", HyperPrior.NORMAL),
-            (HyperPrior.LOG_NORMAL, HyperPrior.LOG_NORMAL),
-            (HyperPrior.LOG_NORMAL_SCALED, HyperPrior.LOG_NORMAL_SCALED),
-            (HyperPrior.CAUCHY, HyperPrior.CAUCHY),
-            (HyperPrior.NORMAL, HyperPrior.NORMAL),
-        ],
-    )
-    def test_init_with_different_hyper_priors(self, arg, expected):
-        """Test initialization with different HyperPrior values."""
-        model = PyBBT(hyper_prior=arg)
-        assert model._hyper_prior == expected
 
     def test_init_defaults(self):
         """Test that default initialization values are set correctly."""
         model = PyBBT()
         assert model._local_rope_value is None
-        assert model._tie_solver == TieSolver.SPREAD
-        assert model._hyper_prior == HyperPrior.LOG_NORMAL
+        assert model._tie_solver == "spread"
+        assert model._hyper_prior == "log_normal"
         assert model._scale == 1.0
         assert model._maximize
         assert not model.fitted
@@ -207,8 +171,8 @@ class TestPosteriorTable:
         # Add strong_interpretation to columns
         result = fitted_model.posterior_table(
             columns=[
-                ReportedProperty.MEAN,
-                ReportedProperty.STRONG_INTERPRETATION,
+                "mean",
+                "strong_interpretation",
             ]
         )
         valid_values = {"Equivalent", "Unknown"}
@@ -220,7 +184,7 @@ class TestPosteriorTable:
     def test_posterior_table_with_control_model(self, fitted_model):
         """Test posterior_table with control_model parameter."""
         result = fitted_model.posterior_table(
-            control_model="model_a", columns=ALL_PROPERTIES
+            control_model="model_a", columns=ALL_PROPERTIES_COLUMNS
         )
         assert len(result) > 0
         # All comparisons should involve model_a
@@ -231,7 +195,7 @@ class TestPosteriorTable:
 
     def test_posterior_table_returns_only_requested_columns(self, fitted_model):
         """Test that posterior_table returns only requested columns."""
-        requested_columns = [ReportedProperty.MEAN, ReportedProperty.DELTA]
+        requested_columns = ["mean", "delta"]
         result = fitted_model.posterior_table(
             columns=requested_columns, round_ndigits=None
         )
@@ -471,8 +435,8 @@ class TestPosteriorTableInterpretations:
 
         result = fitted_model.posterior_table(
             columns=[
-                ReportedProperty.MEAN,
-                ReportedProperty.STRONG_INTERPRETATION,
+                "mean",
+                "strong_interpretation",
             ],
             round_ndigits=None,
         )
@@ -524,7 +488,7 @@ class TestPosteriorTableStructure:
 
         monkeypatch.setattr("bbttest.bbt.py_bbt._get_pwin", mock_get_pwin)
 
-        result = fitted_model.posterior_table(columns=ALL_PROPERTIES)
+        result = fitted_model.posterior_table(columns=ALL_PROPERTIES_COLUMNS)
 
         for _, row in result.iterrows():
             expected_pair = f"{row['left_model']} > {row['right_model']}"
@@ -572,7 +536,7 @@ class TestPosteriorTableStructure:
         monkeypatch.setattr("bbttest.bbt.py_bbt._get_pwin", mock_get_pwin)
 
         result = fitted_model.posterior_table(
-            columns=[ReportedProperty.HDI_LOW, ReportedProperty.HDI_HIGH],
+            columns=["hdi_low", "hdi_high"],
             round_ndigits=None,
         )
 
@@ -600,9 +564,9 @@ class TestPosteriorTableStructure:
 
         result = fitted_model.posterior_table(
             columns=[
-                ReportedProperty.HDI_LOW,
-                ReportedProperty.HDI_HIGH,
-                ReportedProperty.DELTA,
+                "hdi_low",
+                "hdi_high",
+                "delta",
             ],
             round_ndigits=None,  # Don't round to avoid rounding differences
         )

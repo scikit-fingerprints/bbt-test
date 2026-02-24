@@ -17,3 +17,5 @@ wheels/
 .idea/
 .vscode/
 
+# OS dependent files
+.DS_Store

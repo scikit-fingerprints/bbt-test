@@ -7,7 +7,6 @@ import pytest
 from bbttest.bbt.alg import (
     _construct_win_table,
 )
-from bbttest.bbt.params import TieSolver
 
 SCORES_1 = pd.DataFrame(
     {
@@ -76,7 +75,7 @@ class TestConstructTable:
             data_sd=None,
             dataset_col=None,
             local_rope_value=local_rope_value,
-            tie_solver=TieSolver.DAVIDSON,  # Keeps the ties in the table
+            tie_solver="davidson",  # Keeps the ties in the table
             maximize=maximize,
         )
 
@@ -109,6 +108,6 @@ class TestUserWarnings:
                 data_sd=None,
                 dataset_col=None,  # This column is unnamed
                 local_rope_value=None,
-                tie_solver=TieSolver.DAVIDSON,
+                tie_solver="davidson",
                 maximize=True,
             )

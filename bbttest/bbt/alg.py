@@ -8,7 +8,6 @@ import pandas as pd
 from tqdm.auto import tqdm
 
 from .const import UNNAMED_COLUMNS_WARNING_TEMPLATE
-from .params import TieSolver
 
 ALG1_COL = 2
 ALG2_COL = 3
@@ -107,12 +106,12 @@ def _construct_lrope(
     return out_array
 
 
-def _solve_ties(table: np.ndarray, tie_solver: TieSolver) -> np.ndarray:
-    if tie_solver == TieSolver.DAVIDSON:
+def _solve_ties(table: np.ndarray, tie_solver: str) -> np.ndarray:
+    if tie_solver == "davidson":
         return table
-    if tie_solver == TieSolver.SPREAD:
+    if tie_solver == "spread":
         tie_val = np.ceil(table[:, TIE_COL] / 2).astype(int)
-    elif tie_solver == TieSolver.ADD:
+    elif tie_solver == "add":
         tie_val = table[:, TIE_COL].astype(int)
     else:
         tie_val = 0
@@ -126,7 +125,7 @@ def _construct_win_table(
     data_sd: pd.DataFrame | None,
     dataset_col: str | int | None,
     local_rope_value: float | None,
-    tie_solver: TieSolver,
+    tie_solver: str,
     maximize: bool,
 ) -> tuple[np.ndarray, list[str]]:
     # Extract algorithm names
