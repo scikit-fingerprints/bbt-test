@@ -19,3 +19,9 @@ wheels/
 
 # OS dependent files
 .DS_Store
+
+# unrelated files
+.coverage
+*.ipynb
+!examples/*.ipynb
+

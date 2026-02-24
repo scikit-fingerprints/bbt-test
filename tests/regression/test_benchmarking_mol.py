@@ -106,6 +106,130 @@ def _extract_interpretations(results):
     return interpretations
 
 
+# ---- SCORES FROM THE ARTICLE ----
+ROPE_1_VALUE = (0.45, 0.55)
+ROPE_1_BETTER_MODELS = ["CLAMP", "rmat_4M"]
+ROPE_1_EQUIVALENT_MODELS = []
+ROPE_1_UNKNOWN_MODELS = [
+    "AtomPair_count",
+    "CDDD",
+    "ChemBERTa-10M-MTR",
+    "mat_masking_2M",
+    "molbert",
+]
+ROPE_1_WORSE_MODELS = [
+    "ChemFM-3B",
+    "ChemGPT-4.7M",
+    "GEM",
+    "GNN-GraphCL-sum",
+    "GraphFP-CP",
+    "GraphMVP_CP-max",
+    "MoLFormer-XL-both-10pct",
+    "SELFormer-Lite",
+    "SimSon",
+    "TT",
+    "chemformer_mask",
+    "coati",
+    "grover_large",
+    "mol2vec",
+    "mol_r_tag_1024",
+    "unimolv1",
+    "unimolv2",
+]
+
+ROPE_2_VALUE = (0.4, 0.6)
+ROPE_2_BETTER_MODELS = ["CLAMP", "rmat_4M"]
+ROPE_2_EQUIVALENT_MODELS = [
+    "CDDD",
+    "ChemBERTa-10M-MTR",
+    "mat_masking_2M",
+    "molbert",
+]
+ROPE_2_UNKNOWN_MODELS = ["AtomPair_count"]
+ROPE_2_WORSE_MODELS = [
+    "ChemFM-3B",
+    "ChemGPT-4.7M",
+    "GEM",
+    "GNN-GraphCL-sum",
+    "GraphFP-CP",
+    "GraphMVP_CP-max",
+    "MoLFormer-XL-both-10pct",
+    "SELFormer-Lite",
+    "SimSon",
+    "TT",
+    "chemformer_mask",
+    "coati",
+    "grover_large",
+    "mol2vec",
+    "mol_r_tag_1024",
+    "unimolv1",
+    "unimolv2",
+]
+
+ROPE_3_VALUE = (0.35, 0.65)
+ROPE_3_BETTER_MODELS = ["CLAMP"]
+ROPE_3_EQUIVALENT_MODELS = [
+    "AtomPair_count",
+    "CDDD",
+    "ChemBERTa-10M-MTR",
+    "mat_masking_2M",
+    "molbert",
+    "rmat_4M",
+]
+ROPE_3_UNKNOWN_MODELS = []
+ROPE_3_WORSE_MODELS = [
+    "ChemFM-3B",
+    "ChemGPT-4.7M",
+    "GEM",
+    "GNN-GraphCL-sum",
+    "GraphFP-CP",
+    "GraphMVP_CP-max",
+    "MoLFormer-XL-both-10pct",
+    "SELFormer-Lite",
+    "SimSon",
+    "TT",
+    "chemformer_mask",
+    "coati",
+    "grover_large",
+    "mol2vec",
+    "mol_r_tag_1024",
+    "unimolv1",
+    "unimolv2",
+]
+
+ROPE_4_VALUE = (0.3, 0.7)
+ROPE_4_BETTER_MODELS = []
+ROPE_4_EQUIVALENT_MODELS = [
+    "AtomPair_count",
+    "CDDD",
+    "CLAMP",
+    "ChemBERTa-10M-MTR",
+    "MoLFormer-XL-both-10pct",
+    "mat_masking_2M",
+    "mol2vec",
+    "molbert",
+    "rmat_4M",
+]
+ROPE_4_UNKNOWN_MODELS = []
+ROPE_4_WORSE_MODELS = [
+    "ChemFM-3B",
+    "ChemGPT-4.7M",
+    "GEM",
+    "GNN-GraphCL-sum",
+    "GraphFP-CP",
+    "GraphMVP_CP-max",
+    "SELFormer-Lite",
+    "SimSon",
+    "TT",
+    "chemformer_mask",
+    "coati",
+    "grover_large",
+    "mol_r_tag_1024",
+    "unimolv1",
+    "unimolv2",
+]
+
+
 class TestWeakInterpretationAgainstECFP:
     """Test weak interpretation results against ECFP baseline for different ROPE values."""
 
@@ -114,130 +238,32 @@ class TestWeakInterpretationAgainstECFP:
         "rope,better_models,equivalent_models,unknown_models,worse_models",
         [
             (
-                (0.45, 0.55),
-                ["CLAMP", "rmat_4M"],
-                [],
-                [
-                    "AtomPair_count",
-                    "CDDD",
-                    "ChemBERTa-10M-MTR",
-                    "mat_masking_2M",
-                    "molbert",
-                ],
-                [
-                    "ChemFM-3B",
-                    "ChemGPT-4.7M",
-                    "GEM",
-                    "GNN-GraphCL-sum",
-                    "GraphFP-CP",
-                    "GraphMVP_CP-max",
-                    "MoLFormer-XL-both-10pct",
-                    "SELFormer-Lite",
-                    "SimSon",
-                    "TT",
-                    "chemformer_mask",
-                    "coati",
-                    "grover_large",
-                    "mol2vec",
-                    "mol_r_tag_1024",
-                    "unimolv1",
-                    "unimolv2",
-                ],
+                ROPE_1_VALUE,
+                ROPE_1_BETTER_MODELS,
+                ROPE_1_EQUIVALENT_MODELS,
+                ROPE_1_UNKNOWN_MODELS,
+                ROPE_1_WORSE_MODELS,
             ),
             (
-                (0.4, 0.6),
-                ["CLAMP", "rmat_4M"],
-                [
-                    "CDDD",
-                    "ChemBERTa-10M-MTR",
-                    "mat_masking_2M",
-                    "molbert",
-                ],
-                ["AtomPair_count"],
-                [
-                    "ChemFM-3B",
-                    "ChemGPT-4.7M",
-                    "GEM",
-                    "GNN-GraphCL-sum",
-                    "GraphFP-CP",
-                    "GraphMVP_CP-max",
-                    "MoLFormer-XL-both-10pct",
-                    "SELFormer-Lite",
-                    "SimSon",
-                    "TT",
-                    "chemformer_mask",
-                    "coati",
-                    "grover_large",
-                    "mol2vec",
-                    "mol_r_tag_1024",
-                    "unimolv1",
-                    "unimolv2",
-                ],
+                ROPE_2_VALUE,
+                ROPE_2_BETTER_MODELS,
+                ROPE_2_EQUIVALENT_MODELS,
+                ROPE_2_UNKNOWN_MODELS,
+                ROPE_2_WORSE_MODELS,
             ),
             (
-                (0.35, 0.65),
-                ["CLAMP"],
-                [
-                    "AtomPair_count",
-                    "CDDD",
-                    "ChemBERTa-10M-MTR",
-                    "mat_masking_2M",
-                    "molbert",
-                    "rmat_4M",
-                ],
-                [],
-                [
-                    "ChemFM-3B",
-                    "ChemGPT-4.7M",
-                    "GEM",
-                    "GNN-GraphCL-sum",
-                    "GraphFP-CP",
-                    "GraphMVP_CP-max",
-                    "MoLFormer-XL-both-10pct",
-                    "SELFormer-Lite",
-                    "SimSon",
-                    "TT",
-                    "chemformer_mask",
-                    "coati",
-                    "grover_large",
-                    "mol2vec",
-                    "mol_r_tag_1024",
-                    "unimolv1",
-                    "unimolv2",
-                ],
+                ROPE_3_VALUE,
+                ROPE_3_BETTER_MODELS,
+                ROPE_3_EQUIVALENT_MODELS,
+                ROPE_3_UNKNOWN_MODELS,
+                ROPE_3_WORSE_MODELS,
             ),
             (
-                (0.3, 0.7),
-                [],
-                [
-                    "AtomPair_count",
-                    "CDDD",
-                    "CLAMP",
-                    "ChemBERTa-10M-MTR",
-                    "MoLFormer-XL-both-10pct",
-                    "mat_masking_2M",
-                    "mol2vec",
-                    "molbert",
-                    "rmat_4M",
-                ],
-                [],
-                [
-                    "ChemFM-3B",
-                    "ChemGPT-4.7M",
-                    "GEM",
-                    "GNN-GraphCL-sum",
-                    "GraphFP-CP",
-                    "GraphMVP_CP-max",
-                    "SELFormer-Lite",
-                    "SimSon",
-                    "TT",
-                    "chemformer_mask",
-                    "coati",
-                    "grover_large",
-                    "mol_r_tag_1024",
-                    "unimolv1",
-                    "unimolv2",
-                ],
+                ROPE_4_VALUE,
+                ROPE_4_BETTER_MODELS,
+                ROPE_4_EQUIVALENT_MODELS,
+                ROPE_4_UNKNOWN_MODELS,
+                ROPE_4_WORSE_MODELS,
             ),
         ],
         ids=["rope_0.45_0.55", "rope_0.4_0.6", "rope_0.35_0.65", "rope_0.3_0.7"],
@@ -300,3 +326,75 @@ class TestWeakInterpretationAgainstECFP:
             assert interpretations[model] == "ECFP better", (
                 f"Model {model} should be worse than ECFP for ROPE {rope}"
             )
+
+    @pytest.mark.slow
+    def test_multiple_rope_table(
+        self,
+        fitted_model,
+    ):
+        """
+        Test posterior table with multiple ROPE values.
+
+        Parameters
+        ----------
+        fitted_model : PyBBT
+            Fitted PyBBT model fixture.
+        """
+        # Given
+        expected_dataframe = pd.DataFrame(
+            {
+                "rope_value": [
+                    ROPE_1_VALUE,
+                    ROPE_2_VALUE,
+                    ROPE_3_VALUE,
+                    ROPE_4_VALUE,
+                ],
+                "better_models": [
+                    sorted(ROPE_1_BETTER_MODELS),
+                    sorted(ROPE_2_BETTER_MODELS),
+                    sorted(ROPE_3_BETTER_MODELS),
+                    sorted(ROPE_4_BETTER_MODELS),
+                ],
+                "equivalent_models": [
+                    sorted(ROPE_1_EQUIVALENT_MODELS),
+                    sorted(ROPE_2_EQUIVALENT_MODELS),
+                    sorted(ROPE_3_EQUIVALENT_MODELS),
+                    sorted(ROPE_4_EQUIVALENT_MODELS),
+                ],
+                "unknown_models": [
+                    sorted(ROPE_1_UNKNOWN_MODELS),
+                    sorted(ROPE_2_UNKNOWN_MODELS),
+                    sorted(ROPE_3_UNKNOWN_MODELS),
+                    sorted(ROPE_4_UNKNOWN_MODELS),
+                ],
+                "worse_models": [
+                    sorted(ROPE_1_WORSE_MODELS),
+                    sorted(ROPE_2_WORSE_MODELS),
+                    sorted(ROPE_3_WORSE_MODELS),
+                    sorted(ROPE_4_WORSE_MODELS),
+                ],
+            }
+        )
+
+        # When
+
+        results = fitted_model.rope_comparison_control_table(
+            rope_values=(ROPE_1_VALUE, ROPE_2_VALUE, ROPE_3_VALUE, ROPE_4_VALUE),
+            control_model="ECFP_count",
+            return_as_array=True,  # Return as array as order does not matter and we need to sort
+        )
+        for column in [
+            "better_models",
+            "equivalent_models",
+            "unknown_models",
+            "worse_models",
+        ]:
+            results[column] = results[column].apply(sorted)
+
+        # Then
+        # Order columns to match expected dataframe, ignore index
+        results = results[expected_dataframe.columns]
+        pd.testing.assert_frame_equal(
+            results.reset_index(drop=True),
+            expected_dataframe.reset_index(drop=True),
+        )
