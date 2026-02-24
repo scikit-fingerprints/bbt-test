@@ -64,20 +64,6 @@ def fitted_model(mock_data):
 class TestPyBBTInitialization:
     """Test PyBBT initialization and parameter validation."""
 
-    def test_init_with_enum_parameters(self):
-        """Test that PyBBT can be initialized with enum parameters."""
-        model = PyBBT(
-            local_rope_value=0.01,
-            tie_solver="spread",
-            hyper_prior="log_normal",
-            scale=1.0,
-        )
-        assert model._local_rope_value == 0.01
-        assert model._tie_solver == "spread"
-        assert model._hyper_prior == "log_normal"
-        assert model._scale == 1.0
-        assert not model.fitted
-
     def test_init_with_string_parameters(self):
         """Test that PyBBT can be initialized with string parameters that are cast to enums."""
         model = PyBBT(
@@ -102,6 +88,19 @@ class TestPyBBTInitialization:
         assert model._scale == 1.0
         assert model._maximize
         assert not model.fitted
+
+    def test_validate_params(self):
+        """Test that invalid parameter values raise ValueError."""
+        with pytest.raises(
+            ValueError,
+            match="Invalid value 'invalid_solver' for parameter 'tie_solver'",
+        ):
+            PyBBT(tie_solver="invalid_solver")
+        with pytest.raises(
+            ValueError,
+            match="Invalid value 'invalid_prior' for parameter 'hyper_prior'",
+        ):
+            PyBBT(hyper_prior="invalid_prior")
 
 
 class TestPyBBTFitting:
