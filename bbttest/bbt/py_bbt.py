@@ -4,7 +4,12 @@ from typing import Literal
 import numpy as np
 import pandas as pd
 
-from ._types import HyperPriorType, ReportedPropertyColumnType, TieSolverType
+from ._types import (
+    ALL_PROPERTIES_COLUMNS,
+    HyperPriorType,
+    ReportedPropertyColumnType,
+    TieSolverType,
+)
 from ._utils import _validate_params
 from .alg import _construct_win_table, _get_pwin, _hdi
 from .model import _mcmcbbt_pymc
@@ -78,6 +83,8 @@ class PyBBT:
         Journal of Machine Learning Research 24 (2023): 1-34
         <http://jmlr.org/papers/v24/22-0907.html>`_
     """
+
+    ALL_PROPERTIES_COLUMNS = ALL_PROPERTIES_COLUMNS
 
     _WEAK_INTERPRETATION_THRESHOLD = 0.95
     _STRONG_INTERPRETATION_BETTER_THRESHOLD = 0.70
@@ -231,7 +238,7 @@ class PyBBT:
 
         out_table["strong_interpretation_raw"] = np.where(
             out_table["mean"] > self._STRONG_INTERPRETATION_BETTER_THRESHOLD,
-            out_table["left_model"] + ">",
+            ">",
             np.where(
                 out_table["mean"] <= self._STRONG_INTERPRETATION_EQUAL_THRESHOLD,
                 "=",
@@ -262,6 +269,7 @@ class PyBBT:
                 )
         return out_table[["pair", *columns]]
 
+    @_validate_params
     def rope_comparison_control_table(
         self,
         rope_values: Sequence[tuple[float, float]],
@@ -306,8 +314,9 @@ class PyBBT:
                 selected_models=selected_models,
                 columns=(
                     "left_model",
-                    "weak_interpretation",
-                    "strong_interpretation",
+                    "right_model",
+                    "weak_interpretation_raw",
+                    "strong_interpretation_raw",
                 ),
             )
             better_models: list[str] = []
@@ -316,18 +325,29 @@ class PyBBT:
             unknown_models: list[str] = []
             for _, row in posterior_df.iterrows():
                 interpretation_col = (
-                    "weak_interpretation"
+                    "weak_interpretation_raw"
                     if interpretation == "weak"
-                    else "strong_interpretation"
+                    else "strong_interpretation_raw"
                 )
-                if row[interpretation_col] == f"{row['left_model']} better":
-                    better_models.append(row["left_model"])
-                elif row[interpretation_col] == "Equivalent":
-                    equivalent_models.append(row["left_model"])
-                elif row[interpretation_col] == "Unknown":
-                    unknown_models.append(row["left_model"])
+                non_control_model = (
+                    row["right_model"]
+                    if row["left_model"] == control_model
+                    else row["left_model"]
+                )
+
+                if row[interpretation_col] == ">":
+                    if row["left_model"] == control_model:
+                        worse_models.append(non_control_model)
+                    else:
+                        better_models.append(non_control_model)
+                elif row[interpretation_col] == "=":
+                    equivalent_models.append(non_control_model)
+                elif row[interpretation_col] == "?":
+                    unknown_models.append(non_control_model)
                 else:
-                    worse_models.append(row["left_model"])
+                    raise RuntimeError(
+                        f"Unexpected interpretation value {row[interpretation_col]} in row {row['pair']}. Please report this as a bug."
+                    )
             if not return_as_array:
                 better_models_str = join_char.join(better_models)
                 equivalent_models_str = join_char.join(equivalent_models)

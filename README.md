@@ -28,6 +28,8 @@ pip install git+https://github.com/scikit-fingerprints/bbt-test
 
 To generate results from BBT model you need to first fit posterior MCMC samples. BBT-Test supports unpaired (1 metric readout per algorithm per dataset) and paired (multiple metric readouts per algorithm per dataset) data.
 
+For hands-on example of using the package, check out our example notebook: [01_simple_bbt_comparison.ipynb](examples/01_simple_bbt_comparison.ipynb).
+
 ### Unpaired posterior fitting
 
 Start with single dataframe in shape (n_datasets, n_algorithms), optionally this dataframe can contain a dataset column:

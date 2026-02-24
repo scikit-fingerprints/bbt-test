@@ -20,6 +20,8 @@ ReportedPropertyColumnType = Literal[
     "in_rope",
     "weak_interpretation",
     "strong_interpretation",
+    "weak_interpretation_raw",
+    "strong_interpretation_raw",
 ]
 
 ALL_PROPERTIES_COLUMNS: list[ReportedPropertyColumnType] = list(

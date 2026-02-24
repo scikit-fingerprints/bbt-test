@@ -29,7 +29,6 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "coverage",
     "jupyter",
     "mypy",
     "pre-commit",
@@ -39,6 +38,7 @@ dev = [
 test = [
     "pre-commit",
     "pytest",
+    "pytest-cov",
     "ruff",
     "mypy",
 ]

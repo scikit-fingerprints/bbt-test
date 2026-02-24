@@ -31,6 +31,9 @@ def _validate_params(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
+        for kwarg in kwargs:
+            if kwarg not in sig.parameters:
+                raise ValueError(f"Unexpected keyword argument '{kwarg}'")
         bound_args = sig.bind(*args, **kwargs)
         bound_args.apply_defaults()
         for name, value in bound_args.arguments.items():

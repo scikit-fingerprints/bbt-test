@@ -30,3 +30,10 @@ class TestLiteralValidation:
                 mock_fun(**params)
         else:
             mock_fun(**params)
+
+    def test_unexpected_kwarg(self):
+        """Test if _validate_params raises an error for unexpected keyword arguments."""
+        with pytest.raises(
+            ValueError, match="Unexpected keyword argument 'unexpected_kwarg'"
+        ):
+            mock_fun(param_lit="option1", param_str="valid string", unexpected_kwarg=42)
