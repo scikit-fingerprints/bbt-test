@@ -4,9 +4,10 @@ from typing import Literal
 import numpy as np
 import pandas as pd
 
+from ._types import HyperPriorType, ReportedPropertyColumnType, TieSolverType
+from ._utils import _validate_params
 from .alg import _construct_win_table, _get_pwin, _hdi
 from .model import _mcmcbbt_pymc
-from .params import DEFAULT_PROPERTIES, HyperPrior, ReportedProperty, TieSolver
 
 
 class PyBBT:
@@ -19,28 +20,33 @@ class PyBBT:
     local_rope_value: float | None, default 0.1
         The value of the local ROPE to be used when constructing win/tie/loss pairs. If the models is unpaired (i.e., only one score per model per dataset),
         this value is used to determine the threshold for ties in the followin manner:
+
             - score_a - score_b > local_rope_value => model A wins
             - score_b - score_a > local_rope_value => model B wins
             - otherwise => tie
+
         In case of paired BBT (i.e. multiple readings per model per dataset or data_sd provided), the ties are determined based on the following conditions:
+
             - sigma = sqrt(sd_a^2 + sd_b^2)
             - score_a - score_b > local_rope_value * sigma => model A wins
             - score_b - score_a > local_rope_value * sigma => model B wins
             - otherwise => tie
+
         If None, no ties are recorded.
 
-    tie_solver: TieSolver, default TieSolver.SPREAD
+    tie_solver: str, defaults to `spread`
         The strategy to handle ties when sampling the BBT model.
-            - ADD - Adds 1 win to both players for each tie.
-            - SPREAD - Adds 0.5 win to both players for each tie.
-            - FORGET - Ignores the ties.
-            - DAVIDSON - Uses Davidson's method to handle ties in the BBT model. See [1]_.
 
-    hyper_prior: HyperPrior, default HyperPrior.LOG_NORMAL
+            - `add` - Adds 1 win to both players for each tie.
+            - `spread` - Adds 0.5 win to both players for each tie.
+            - `forget` - Ignores the ties.
+            - `davidson` - Uses Davidson's method to handle ties in the BBT model. See [1]_.
+
+    hyper_prior: str, default `log_normal`
         The hyper prior distribution to be used for the BBT MCMC sampling.
 
     scale: float, default 1.0
-        The scale parameter for the hyper prior distribution. Ignored if the HyperPrior is LOG_NORMAL.
+        The scale parameter for the hyper prior distribution.
 
     maximize: bool, default True
         Whether higher scores indicate better performance (e.g. accuracy/f1). If using a metric where the goal is to
@@ -54,14 +60,14 @@ class PyBBT:
     Examples
     --------
     >>> import pandas as pd
-    >>> from bbttest import PyBBT, TieSolver
+    >>> from bbttest import PyBBT
     >>> data = pd.DataFrame({
     ...     'dataset': ['ds1', 'ds2', 'ds3'],
     ...     'model_a': [0.8, 0.75, 0.9],
     ...     'model_b': [0.7, 0.8, 0.85],
     ...     'model_c': [0.6, 0.65, 0.7]
     ... })
-    >>> model = PyBBT(local_rope_value=0.01, tie_solver=TieSolver.SPREAD)
+    >>> model = PyBBT(local_rope_value=0.01, tie_solver="spread")
     >>> model.fit(data, dataset_col='dataset')
     >>> model.posterior_table(rope_value=(0.45, 0.55))
 
@@ -77,22 +83,19 @@ class PyBBT:
     _STRONG_INTERPRETATION_BETTER_THRESHOLD = 0.70
     _STRONG_INTERPRETATION_EQUAL_THRESHOLD = 0.55
 
+    @_validate_params
     def __init__(
         self,
         local_rope_value: float | None = None,
-        tie_solver: TieSolver | str = TieSolver.SPREAD,
-        hyper_prior: HyperPrior | str = HyperPrior.LOG_NORMAL,
+        tie_solver: TieSolverType = "spread",
+        hyper_prior: HyperPriorType = "log_normal",
         maximize: bool = True,
         scale: float = 1.0,
     ):
         self._local_rope_value = local_rope_value
-        self._tie_solver = (
-            TieSolver(tie_solver) if isinstance(tie_solver, str) else tie_solver
-        )
-        self._use_davidson = self._tie_solver == TieSolver.DAVIDSON
-        self._hyper_prior = (
-            HyperPrior(hyper_prior) if isinstance(hyper_prior, str) else hyper_prior
-        )
+        self._tie_solver = tie_solver
+        self._use_davidson = self._tie_solver == "davidson"
+        self._hyper_prior = hyper_prior
         self._maximize = maximize
         self._scale = scale
         self._fitted = False
@@ -116,16 +119,21 @@ class PyBBT:
         """
         Fits the BBT for a given result dataframes.
 
-        Args:
-            data (pd.DataFrame): Dataframe containing scores for the models on the datasets.
-                If data_sd is provided, this dataframe should contain mean scores per model per dataset.
-                If multiple scores per model per dataset are provided, data_sd is ignored, and dataset_col is required.
-            data_sd (pd.DataFrame | None, optional): Dataframe containing standard deviations of the scores for the models on the datasets.
-            dataset_col (str, optional): Column name for the dataset identifier. Defaults to "dataset".
+        Parameters
+        ----------
+        data : pd.DataFrame
+            Dataframe containing scores for the models on the datasets.
+            If data_sd is provided, this dataframe should contain mean scores per model per dataset.
+            If multiple scores per model per dataset are provided, data_sd is ignored, and dataset_col is required.
+        data_sd : pd.DataFrame | None, optional
+            Dataframe containing standard deviations of the scores for the models on the datasets.
+        dataset_col : str, optional
+            Column name for the dataset identifier. Defaults to "dataset".
 
         Returns
         -------
-            self: fitted PyBBT instance
+        self : PyBBT
+            Fitted PyBBT instance
         """
         self._win_table, self._algorithms = _construct_win_table(
             data=data,
@@ -153,23 +161,37 @@ class PyBBT:
         rope_value: tuple[float, float] = (0.45, 0.55),
         control_model: str | None = None,
         selected_models: Iterable[str] | None = None,
-        columns: Iterable[ReportedProperty | str] = DEFAULT_PROPERTIES,
+        columns: Iterable[ReportedPropertyColumnType] = (
+            "mean",
+            "delta",
+            "above_50",
+            "in_rope",
+            "weak_interpretation",
+        ),
         hdi_proba: float = 0.89,
         round_ndigits: int | None = 2,
     ) -> pd.DataFrame:
         """Compute posterior table containing sampling results for the fitted BBT model.
 
-        Args:
-            rope_value (tuple[float, float], optional): Region of Practical Equivalence (ROPE). Defaults to (0.45, 0.55).
-            control_model (str | None, optional): Control model for comparison. Defaults to None.
-            selected_models (list[str] | None, optional): Subset of models to include in the posterior table. Defaults to None.
-            columns (list[ReportedProperty], optional): Columns to include in the posterior table. Defaults to DEFAULT_PROPERTIES.
-            hdi_proba (float, optional): Highest Density Interval probability. Defaults to 0.89.
-            round_ndigits (int | None, optional): Number of digits to round the results to. Defaults to 2.
+        Parameters
+        ----------
+        rope_value : tuple[float, float], optional
+            Region of Practical Equivalence (ROPE). Defaults to (0.45, 0.55).
+        control_model : str | None, optional
+            Control model for comparison. Defaults to None.
+        selected_models : Iterable[str] | None, optional
+            Subset of models to include in the posterior table. Defaults to None.
+        columns : Iterable[ReportedPropertyColumnType], optional
+            Columns to include in the posterior table. Defaults to minimum set for weak interpretation.
+        hdi_proba : float, optional
+            Highest Density Interval probability. Defaults to 0.89.
+        round_ndigits : int | None, optional
+            Number of digits to round the results to. Defaults to 2.
 
         Returns
         -------
-            pd.DataFrame: Posterior table containing sampling results for the fitted BBT model.
+        pd.DataFrame
+            Posterior table containing sampling results for the fitted BBT model.
         """
         self._check_if_fitted()
 
@@ -254,23 +276,26 @@ class PyBBT:
         The output table contains N rows (one per ROPE) and 5 columns
         (rope value, better models, equivalent models, worse models, unknown models).
 
-        Args:
-            model: Fitted PyBBT model.
-            ropes: List of ROPE tuples to evaluate.
-            interpretation: Type of interpretation to use ("weak" or "strong"), see [1]_.
-            return_as_array: Whether the individual cells should contain model names as list or joined into single string.
-            join_char: Character(s) used to join multiple model names in a single cell.
+        Parameters
+        ----------
+        rope_values : Sequence[tuple[float, float]]
+            List of ROPE tuples to evaluate.
+        control_model : str
+            Control model for comparison.
+        selected_models : Sequence[str] | None, optional
+            Subset of models to include. Defaults to None.
+        interpretation : {"weak", "strong"}, optional
+            Type of interpretation to use, see [1]_. Defaults to "weak".
+        return_as_array : bool, optional
+            Whether the individual cells should contain model names as list or joined into single string.
+            Defaults to False.
+        join_char : str, optional
+            Character(s) used to join multiple model names in a single cell. Defaults to ", ".
 
         Returns
         -------
-            pd.DataFrame: Table comparing models against control models across multiple ROPEs.
-
-        References
-        ----------
-        .. [1] `Jacques Wainer
-            "A Bayesian Bradley-Terry model to compare multiple ML algorithms on multiple data sets"
-            Journal of Machine Learning Research 24 (2023): 1-34
-            <http://jmlr.org/papers/v24/22-0907.html>`_
+        pd.DataFrame
+            Table comparing models against control models across multiple ROPEs.
         """
         self._check_if_fitted()
         records = []
@@ -279,11 +304,11 @@ class PyBBT:
                 rope_value=rope,
                 control_model=control_model,
                 selected_models=selected_models,
-                columns=[
-                    ReportedProperty.LEFT_MODEL,
-                    ReportedProperty.WEAK_INTERPRETATION,
-                    ReportedProperty.STRONG_INTERPRETATION,
-                ],
+                columns=(
+                    "left_model",
+                    "weak_interpretation",
+                    "strong_interpretation",
+                ),
             )
             better_models: list[str] = []
             equivalent_models: list[str] = []

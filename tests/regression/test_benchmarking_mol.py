@@ -25,7 +25,7 @@ The tests validate that the PyBBT model correctly identifies:
 
 Test parameters:
 - local_rope_value: 0.01
-- tie_solver: TieSolver.SPREAD
+- tie_solver: "spread"
 - MCMC sampling: 2000 draws, 1000 tune, 4 chains
 """
 
@@ -34,8 +34,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from bbttest import PyBBT, TieSolver
-from bbttest.bbt.params import DEFAULT_PROPERTIES, ReportedProperty
+from bbttest import PyBBT
 
 
 @pytest.fixture(scope="module")
@@ -68,7 +67,7 @@ def fitted_model(benchmarking_data):
     PyBBT
         Fitted PyBBT model instance.
     """
-    model = PyBBT(local_rope_value=0.01, tie_solver=TieSolver.SPREAD)
+    model = PyBBT(local_rope_value=0.01, tie_solver="spread")
     model.fit(
         benchmarking_data,
         dataset_col="dataset",
@@ -273,8 +272,7 @@ class TestWeakInterpretationAgainstECFP:
         results = fitted_model.posterior_table(
             rope_value=rope,
             control_model="ECFP_count",
-            columns=list(DEFAULT_PROPERTIES)
-            + [ReportedProperty.LEFT_MODEL, ReportedProperty.RIGHT_MODEL],
+            columns=["left_model", "right_model", "weak_interpretation"],
         )
 
         interpretations = _extract_interpretations(results)

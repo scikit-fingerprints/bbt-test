@@ -3,7 +3,7 @@ import numpy as np
 import pymc as pm
 import pytensor.tensor as pt
 
-from .params import HyperPrior
+from ._utils import _get_distribution_for_prior
 
 
 def _build_bbt_model(
@@ -12,7 +12,7 @@ def _build_bbt_model(
     win1: list[int],
     win2: list[int],
     ties: list[int] | None,
-    hyp: HyperPrior,
+    hyp: str,
     scale: float,
     use_davidson: bool,
 ):
@@ -53,7 +53,7 @@ def _build_bbt_model(
 
     with pm.Model() as model:
         # Hyperprior for sigma
-        sigma = hyp._get_pymc_dist(scale=scale, name="sigma")
+        sigma = _get_distribution_for_prior(hyp, scale=scale)
 
         # Abilities for each player
         beta = pm.Normal("beta", mu=0, sigma=sigma, shape=K)
@@ -100,7 +100,7 @@ def _build_bbt_model(
 def _mcmcbbt_pymc(
     table: np.ndarray,
     use_davidson: bool,
-    hyper_prior: HyperPrior,
+    hyper_prior: str,
     scale: float,
     **kwargs,
 ) -> az.InferenceData:

@@ -13,7 +13,7 @@ test:  ## Run tests without regression
 	uv run ruff check
 	uv run pytest tests -m "not slow"
 
-full-test:
+test-all:
 	uv run ruff check
 	uv run pytest tests
 
