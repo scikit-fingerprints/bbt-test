@@ -13,7 +13,11 @@ test:  ## Run tests without regression
 	uv run ruff check
 	uv run pytest tests -m "not slow"
 
-test-all: ruff-fix
+fix-and-test:
+	$(MAKE) ruff-fix
+	$(MAKE) test-all
+
+test-all:
 	uv run pytest tests
 
 test-coverage:  ## Run tests and calculate test coverage
