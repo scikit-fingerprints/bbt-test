@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+from functools import wraps
 from typing import (
     Literal,
     get_args,
@@ -28,6 +29,7 @@ def _validate_params(func):
 
     sig = signature(func)
 
+    @wraps(func)
     def wrapper(*args, **kwargs):
         bound_args = sig.bind(*args, **kwargs)
         bound_args.apply_defaults()
