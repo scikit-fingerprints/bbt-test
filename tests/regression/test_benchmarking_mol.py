@@ -25,7 +25,7 @@ The tests validate that the PyBBT model correctly identifies:
 
 Test parameters:
 - local_rope_value: 0.01
-- tie_solver: TieSolver.SPREAD
+- tie_solver: "spread"
 - MCMC sampling: 2000 draws, 1000 tune, 4 chains
 """
 

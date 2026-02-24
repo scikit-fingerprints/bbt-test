@@ -34,15 +34,15 @@ class PyBBT:
 
         If None, no ties are recorded.
 
-    tie_solver: TieSolver, default TieSolver.SPREAD
+    tie_solver: str, defaults to `spread`
         The strategy to handle ties when sampling the BBT model.
 
-            - ADD - Adds 1 win to both players for each tie.
-            - SPREAD - Adds 0.5 win to both players for each tie.
-            - FORGET - Ignores the ties.
-            - DAVIDSON - Uses Davidson's method to handle ties in the BBT model. See [1]_.
+            - `add` - Adds 1 win to both players for each tie.
+            - `spread` - Adds 0.5 win to both players for each tie.
+            - `forget` - Ignores the ties.
+            - `davidson` - Uses Davidson's method to handle ties in the BBT model. See [1]_.
 
-    hyper_prior: str, default "log_normal"
+    hyper_prior: str, default `log_normal`
         The hyper prior distribution to be used for the BBT MCMC sampling.
 
     scale: float, default 1.0
@@ -60,14 +60,14 @@ class PyBBT:
     Examples
     --------
     >>> import pandas as pd
-    >>> from bbttest import PyBBT, TieSolver
+    >>> from bbttest import PyBBT
     >>> data = pd.DataFrame({
     ...     'dataset': ['ds1', 'ds2', 'ds3'],
     ...     'model_a': [0.8, 0.75, 0.9],
     ...     'model_b': [0.7, 0.8, 0.85],
     ...     'model_c': [0.6, 0.65, 0.7]
     ... })
-    >>> model = PyBBT(local_rope_value=0.01, tie_solver=TieSolver.SPREAD)
+    >>> model = PyBBT(local_rope_value=0.01, tie_solver="spread")
     >>> model.fit(data, dataset_col='dataset')
     >>> model.posterior_table(rope_value=(0.45, 0.55))
 
