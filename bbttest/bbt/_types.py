@@ -24,6 +24,11 @@ ReportedPropertyColumnType = Literal[
     "strong_interpretation_raw",
 ]
 
+InterpretationTypes = Literal[
+    "weak",
+    "strong",
+]
+
 ALL_PROPERTIES_COLUMNS: list[ReportedPropertyColumnType] = list(
     get_args(ReportedPropertyColumnType)
 )

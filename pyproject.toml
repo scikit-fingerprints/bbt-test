@@ -25,6 +25,8 @@ dependencies = [
     "pandas>=2.0.0",
     "pymc",
     "tqdm",
+    "networkx",
+    "matplotlib",
 ]
 
 [dependency-groups]
