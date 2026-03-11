@@ -1,18 +1,20 @@
 from collections.abc import Iterable, Sequence
-from typing import Literal
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 from ._types import (
     ALL_PROPERTIES_COLUMNS,
     HyperPriorType,
+    InterpretationTypes,
     ReportedPropertyColumnType,
     TieSolverType,
 )
 from ._utils import _validate_params
 from .alg import _construct_win_table, _get_pwin, _hdi
 from .model import _mcmcbbt_pymc
+from .plots import plot_cdd_diagram
 
 
 class PyBBT:
@@ -111,6 +113,16 @@ class PyBBT:
         if not self._fitted:
             raise RuntimeError("The model must be fitted before accessing this method.")
 
+    @staticmethod
+    def _get_interpretation_columns(
+        interpretation: InterpretationTypes,
+    ) -> ReportedPropertyColumnType:
+        return (
+            "weak_interpretation_raw"
+            if interpretation == "weak"
+            else "strong_interpretation_raw"
+        )
+
     @property
     def fitted(self):
         """Whether the model has been fitted."""
@@ -162,6 +174,24 @@ class PyBBT:
         self._fitted = True
 
         return self
+
+    @property
+    def beta_ranking(self) -> dict[str, float]:
+        r"""
+        Get the $\beta$ values for each model.
+
+        Beta values can be used for ranking the models globally from best to worst (higher beta indicates better performance).
+        However, they do not have a direct probabilistic interpretation like the pairwise probabilities obtained from the posterior table.
+
+        Returns
+        -------
+        dict[str, float]
+            Dictionary mapping model names to their posterior mean beta values.
+        """
+        self._check_if_fitted()
+        beta = self._fit_posterior.posterior["beta"].to_numpy()
+        mean_beta = np.mean(beta.reshape(-1, beta.shape[-1]), axis=0)
+        return dict(zip(self._algorithms, mean_beta, strict=True))
 
     def posterior_table(
         self,
@@ -275,7 +305,7 @@ class PyBBT:
         rope_values: Sequence[tuple[float, float]],
         control_model: str,
         selected_models: Sequence[str] | None = None,
-        interpretation: Literal["weak", "strong"] = "weak",
+        interpretation: InterpretationTypes = "weak",
         return_as_array: bool = False,
         join_char: str = ", ",
     ) -> pd.DataFrame:
@@ -307,6 +337,7 @@ class PyBBT:
         """
         self._check_if_fitted()
         records = []
+        interpretation_col = self._get_interpretation_columns(interpretation)
         for rope in rope_values:
             posterior_df = self.posterior_table(
                 rope_value=rope,
@@ -324,11 +355,6 @@ class PyBBT:
             worse_models: list[str] = []
             unknown_models: list[str] = []
             for _, row in posterior_df.iterrows():
-                interpretation_col = (
-                    "weak_interpretation_raw"
-                    if interpretation == "weak"
-                    else "strong_interpretation_raw"
-                )
                 non_control_model = (
                     row["right_model"]
                     if row["left_model"] == control_model
@@ -374,3 +400,65 @@ class PyBBT:
                 )
         result_df = pd.DataFrame.from_records(records)
         return result_df
+
+    @_validate_params
+    def plot_cdd_diagram(
+        self,
+        rope_value: tuple[float, float] = (0.45, 0.55),
+        interpretation: InterpretationTypes = "weak",
+        ax: plt.Axes | None = None,
+        **kwargs,
+    ) -> plt.Axes:
+        """
+        Plot the Critical Difference Diagram (CDD) based on the fitted BBT model.
+
+        Critical Difference Diagram visualizes the global ranking of the models along
+        with the equivalence bars connecting models that are considered equivalent based on the specified BBT interpretation.
+        The global ranking is determined based on the posterior mean beta values for each model.
+
+        Parameters
+        ----------
+        rope_value : tuple[float, float], optional
+            Region of Practical Equivalence (ROPE) used to determine ties in the posterior table. Defaults to (0.45, 0.55).
+        interpretation : {"weak", "strong"}, optional
+            Type of interpretation to use for determining equivalence bars. Defaults to "weak".
+        ax : plt.Axes | None, optional
+            Matplotlib Axes to plot on. If None, a new figure and axes are created. Defaults to None.
+        **kwargs
+            Additional keyword arguments passed to the underlying plotting function.
+            See :func:`bbttest.bbt.plots.plot_cdd_diagram` for available parameters.
+
+        Returns
+        -------
+        plt.Axes
+            Matplotlib Axes containing the CDD plot.
+        """
+        self._check_if_fitted()
+        interpretation_col = self._get_interpretation_columns(interpretation)
+
+        model_ranking = self.beta_ranking
+        models_df = pd.DataFrame(
+            {
+                "model": list(model_ranking.keys()),
+                "beta": list(model_ranking.values()),
+            }
+        )
+        models_df["pos"] = (
+            models_df["beta"].rank(ascending=False, method="first").astype(int)
+        )
+        models_df = models_df.sort_values("pos").reset_index(drop=True)
+        posterior_df = self.posterior_table(
+            rope_value=rope_value,
+            columns=(
+                "left_model",
+                "right_model",
+                interpretation_col,
+            ),
+        )
+        return plot_cdd_diagram(
+            models_df=models_df,
+            posterior_df=posterior_df,
+            interpretation_col=interpretation_col,
+            ax=ax,
+            **kwargs,
+        )

@@ -7,13 +7,17 @@ import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
 
-from .const import UNNAMED_COLUMNS_WARNING_TEMPLATE
-
 ALG1_COL = 2
 ALG2_COL = 3
 TIE_COL = 4
 
 logger = log.getLogger(__name__)
+
+
+UNNAMED_COLUMNS_WARNING_TEMPLATE = """Some algorithm names are unnamed. This may lead to issues in the win table construction.
+Algorithm names extracted: {algorithms_names}
+Dataset column: {dataset_col}
+"""
 
 
 def _gen_pairs(no_algs: int) -> Generator[tuple[int, int, int], None, None]:
