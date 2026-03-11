@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import pandas as pd
 
-NO_EQUIVALENCE_CLIQUEST_WARNING_TEMPLATE = """No groups of equivalent algorithms were found in the posterior table.
+NO_EQUIVALENCE_CLIQUES_WARNING_TEMPLATE = """No groups of equivalent algorithms were found in the posterior table.
 CDD plot will not contain any equivalence bars."""
 
 
-def get_bars_for_ccd(
+def get_bars_for_cdd(
     posterior_df: pd.DataFrame,
     models_df: pd.DataFrame,
     interpretation_col: str,
@@ -16,6 +16,14 @@ def get_bars_for_ccd(
     """Calculate equivalence bars using the equivalence cliques in the posterior table."""
     # Construct Graph and find the cliques
     g = nx.Graph()
+
+    posterior_models = set(posterior_df["left_model"]) | set(
+        posterior_df["right_model"]
+    )
+    if posterior_models != set(models_df["model"]):
+        raise ValueError(
+            "The models in the posterior table do not match the models in the models table."
+        )
 
     for _, row in posterior_df.iterrows():
         left = row["left_model"]
@@ -53,7 +61,7 @@ def assign_bar_position(
     ]
 
     rows: list[tuple[int, int]] = []
-    rows_assigments = [0] * len(indexed_bars)
+    rows_assignments = [0] * len(indexed_bars)
 
     for task_idx, start, end in indexed_bars:
         assigned = False
@@ -61,16 +69,16 @@ def assign_bar_position(
             if row_end_value < start:
                 # This row is available
                 rows[i] = (end, row_id)
-                rows_assigments[task_idx] = row_id
+                rows_assignments[task_idx] = row_id
                 assigned = True
                 break
         if not assigned:
             # No rows are available, create a new one
             new_row_id = len(rows)
             rows.append((end, new_row_id))
-            rows_assigments[task_idx] = new_row_id
+            rows_assignments[task_idx] = new_row_id
 
-    return rows_assigments
+    return rows_assignments
 
 
 def _plot_cdd_diagram(
@@ -111,7 +119,7 @@ def _plot_cdd_diagram(
         )
 
     if len(bars) == 0:
-        warnings.warn(NO_EQUIVALENCE_CLIQUEST_WARNING_TEMPLATE, UserWarning)
+        warnings.warn(NO_EQUIVALENCE_CLIQUES_WARNING_TEMPLATE, UserWarning)
         max_bar_pos = 0
     else:
         max_bar_pos = max(bars_positions)
@@ -178,10 +186,36 @@ def plot_cdd_diagram(
     posterior_df: pd.DataFrame,
     interpretation_col: str,
     ax: plt.Axes | None = None,
-    **kwargs,
+    bar_y_spacing: float = 0.12,
+    xlabel_spacing: int = 5,
+    draw_equivalence_lines_to_axis: bool = True,
 ) -> plt.Axes:
-    """Plot a critical difference diagram."""
-    bars = get_bars_for_ccd(
+    """Plot a critical difference diagram.
+
+    Parameters
+    ----------
+    models_df : pd.DataFrame
+        DataFrame containing model names and their ranks. Must have columns "model" and "pos
+    posterior_df : pd.DataFrame
+        DataFrame containing pairwise model comparisons and their interpretations. Must have columns "left_model",
+        "right_model", and the specified interpretation_col.
+    interpretation_col : str
+        Name of the column in posterior_df that contains the interpretation of model comparisons.
+    ax : plt.Axes, optional
+        Matplotlib Axes to plot on. If None, a new figure and axes will be created.
+    bar_y_spacing : float, optional
+        Vertical spacing between equivalence bars. Default is 0.12.
+    xlabel_spacing : int, optional
+        Spacing between x-axis labels. Default is 5.
+    draw_equivalence_lines_to_axis : bool, optional
+        Whether to draw equivalence lines to extend equivalence bars up to the axis.
+        If False, equivalence bars will not have vertical lines connecting them to
+        the axis. Default is True.
+    """
+    if ax is not None and not isinstance(ax, plt.Axes):
+        raise ValueError("ax must be a matplotlib Axes object or None.")
+
+    bars = get_bars_for_cdd(
         posterior_df=posterior_df,
         models_df=models_df,
         interpretation_col=interpretation_col,
@@ -192,5 +226,7 @@ def plot_cdd_diagram(
         bars=bars,
         bars_positions=bars_positions,
         ax=ax,
-        **kwargs,
+        bar_y_spacing=bar_y_spacing,
+        xlabel_spacing=xlabel_spacing,
+        draw_equivalence_lines_to_axis=draw_equivalence_lines_to_axis,
     )

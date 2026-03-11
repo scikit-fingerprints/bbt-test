@@ -408,7 +408,7 @@ class PyBBT:
         interpretation: InterpretationTypes = "weak",
         ax: plt.Axes | None = None,
         **kwargs,
-    ):
+    ) -> plt.Axes:
         """
         Plot the Critical Difference Diagram (CDD) based on the fitted BBT model.
 
@@ -425,7 +425,8 @@ class PyBBT:
         ax : plt.Axes | None, optional
             Matplotlib Axes to plot on. If None, a new figure and axes are created. Defaults to None.
         **kwargs
-            Additional keyword arguments passed to the underlying plotting function. See `plot_cdd_diagram`.
+            Additional keyword arguments passed to the underlying plotting function.
+            See :func:`bbttest.bbt.plots.plot_cdd_diagram` for available parameters.
 
         Returns
         -------
@@ -442,7 +443,9 @@ class PyBBT:
                 "beta": list(model_ranking.values()),
             }
         )
-        models_df["pos"] = models_df["beta"].rank(ascending=False, method="first")
+        models_df["pos"] = (
+            models_df["beta"].rank(ascending=False, method="first").astype(int)
+        )
         models_df = models_df.sort_values("pos").reset_index(drop=True)
         posterior_df = self.posterior_table(
             rope_value=rope_value,
