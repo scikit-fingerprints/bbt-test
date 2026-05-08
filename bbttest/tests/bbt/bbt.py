@@ -17,7 +17,7 @@ from .model import _mcmcbbt_pymc
 from .plots import plot_cdd_diagram
 
 
-class PyBBT:
+class BBTTest:
     """
     BBT model estimator used for multi-dataset multi-model comparison [1]_.
     The model estimates posterior probabilities for each pair of the model.
@@ -67,14 +67,14 @@ class PyBBT:
     Examples
     --------
     >>> import pandas as pd
-    >>> from bbttest import PyBBT
+    >>> from bbttest import BBTTest
     >>> data = pd.DataFrame({
     ...     'dataset': ['ds1', 'ds2', 'ds3'],
     ...     'model_a': [0.8, 0.75, 0.9],
     ...     'model_b': [0.7, 0.8, 0.85],
     ...     'model_c': [0.6, 0.65, 0.7]
     ... })
-    >>> model = PyBBT(local_rope_value=0.01, tie_solver="spread")
+    >>> model = BBTTest(local_rope_value=0.01, tie_solver="spread")
     >>> model.fit(data, dataset_col='dataset')
     >>> model.posterior_table(rope_value=(0.45, 0.55))
 
@@ -151,8 +151,8 @@ class PyBBT:
 
         Returns
         -------
-        self : PyBBT
-            Fitted PyBBT instance
+        self : BBTTest
+            Fitted BBTTest instance
         """
         self._win_table, self._algorithms = _construct_win_table(
             data=data,
@@ -239,8 +239,9 @@ class PyBBT:
             selected=list(selected_models) if selected_models is not None else None,
         )
         out_table = pd.DataFrame({"pair": names})
-        out_table["left_model"] = out_table["pair"].str.split(">").str[0].str.strip()
-        out_table["right_model"] = out_table["pair"].str.split(">").str[1].str.strip()
+        pair_parts = out_table["pair"].str.split(">")
+        out_table["left_model"] = pair_parts.str[0].str.strip()
+        out_table["right_model"] = pair_parts.str[1].str.strip()
         out_table["median"] = np.median(samples, axis=0)
         out_table["mean"] = np.mean(samples, axis=0)
         out_table["above_50"] = np.mean(samples > 0.5, axis=0)
@@ -398,8 +399,8 @@ class PyBBT:
                         "unknown_models": unknown_models,
                     }
                 )
-        result_df = pd.DataFrame.from_records(records)
-        return result_df
+
+        return pd.DataFrame.from_records(records)
 
     @_validate_params
     def plot_cdd_diagram(
@@ -409,52 +410,28 @@ class PyBBT:
         ax: plt.Axes | None = None,
         **kwargs,
     ) -> plt.Axes:
-        """
-        Plot the Critical Difference Diagram (CDD) based on the fitted BBT model.
-
-        Critical Difference Diagram visualizes the global ranking of the models along
-        with the equivalence bars connecting models that are considered equivalent based on the specified BBT interpretation.
-        The global ranking is determined based on the posterior mean beta values for each model.
-
-        Parameters
-        ----------
-        rope_value : tuple[float, float], optional
-            Region of Practical Equivalence (ROPE) used to determine ties in the posterior table. Defaults to (0.45, 0.55).
-        interpretation : {"weak", "strong"}, optional
-            Type of interpretation to use for determining equivalence bars. Defaults to "weak".
-        ax : plt.Axes | None, optional
-            Matplotlib Axes to plot on. If None, a new figure and axes are created. Defaults to None.
-        **kwargs
-            Additional keyword arguments passed to the underlying plotting function.
-            See :func:`bbttest.bbt.plots.plot_cdd_diagram` for available parameters.
-
-        Returns
-        -------
-        plt.Axes
-            Matplotlib Axes containing the CDD plot.
-        """
+        """Plot critical difference diagram for the fitted BBT model."""
         self._check_if_fitted()
-        interpretation_col = self._get_interpretation_columns(interpretation)
-
-        model_ranking = self.beta_ranking
-        models_df = pd.DataFrame(
-            {
-                "model": list(model_ranking.keys()),
-                "beta": list(model_ranking.values()),
-            }
-        )
-        models_df["pos"] = (
-            models_df["beta"].rank(ascending=False, method="first").astype(int)
-        )
-        models_df = models_df.sort_values("pos").reset_index(drop=True)
         posterior_df = self.posterior_table(
             rope_value=rope_value,
             columns=(
                 "left_model",
                 "right_model",
-                interpretation_col,
+                "weak_interpretation_raw",
+                "strong_interpretation_raw",
             ),
+            round_ndigits=None,
         )
+        interpretation_col = self._get_interpretation_columns(interpretation)
+        models_df = pd.DataFrame(
+            {
+                "model": self._algorithms,
+                "pos": list(range(1, len(self._algorithms) + 1)),
+                "mean": self.beta_ranking.values(),
+            }
+        ).sort_values("mean")
+        models_df["pos"] = range(1, len(models_df) + 1)
+
         return plot_cdd_diagram(
             models_df=models_df,
             posterior_df=posterior_df,

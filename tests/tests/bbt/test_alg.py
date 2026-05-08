@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from bbttest.bbt.alg import (
+from bbttest.tests.bbt.alg import (
     _construct_win_table,
 )
 

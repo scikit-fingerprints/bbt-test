@@ -1,7 +1,7 @@
 """
-Unit tests for PyBBT class.
+Unit tests for BBTTest class.
 
-This module contains unit tests for the PyBBT class, testing various
+This module contains unit tests for the BBTTest class, testing various
 functionality including model fitting, posterior table generation,
 ROPE comparison tables, and parameter validation.
 """
@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from bbttest import PyBBT
-from bbttest.bbt._types import ALL_PROPERTIES_COLUMNS
+from bbttest import BBTTest
+from bbttest.tests.bbt._types import ALL_PROPERTIES_COLUMNS
 
 
 @pytest.fixture(scope="module")
@@ -37,7 +37,7 @@ def mock_data():
 @pytest.fixture(scope="module")
 def fitted_model(mock_data):
     """
-    Create a fitted PyBBT model for testing.
+    Create a fitted BBTTest model for testing.
 
     Parameters
     ----------
@@ -46,10 +46,10 @@ def fitted_model(mock_data):
 
     Returns
     -------
-    PyBBT
-        Fitted PyBBT model instance.
+    BBTTest
+        Fitted BBTTest model instance.
     """
-    model = PyBBT(local_rope_value=0.01, tie_solver="spread")
+    model = BBTTest(local_rope_value=0.01, tie_solver="spread")
     model.fit(
         mock_data,
         dataset_col="dataset",
@@ -61,12 +61,12 @@ def fitted_model(mock_data):
     return model
 
 
-class TestPyBBTInitialization:
-    """Test PyBBT initialization and parameter validation."""
+class TestBBTTestInitialization:
+    """Test BBTTest initialization and parameter validation."""
 
     def test_init_with_string_parameters(self):
-        """Test that PyBBT can be initialized with string parameters that are cast to enums."""
-        model = PyBBT(
+        """Test that BBTTest can be initialized with string parameters that are cast to enums."""
+        model = BBTTest(
             local_rope_value=0.01,
             tie_solver="spread",
             hyper_prior="log_normal",
@@ -81,7 +81,7 @@ class TestPyBBTInitialization:
 
     def test_init_defaults(self):
         """Test that default initialization values are set correctly."""
-        model = PyBBT()
+        model = BBTTest()
         assert model._local_rope_value is None
         assert model._tie_solver == "add"
         assert model._hyper_prior == "log_normal"
@@ -95,39 +95,39 @@ class TestPyBBTInitialization:
             ValueError,
             match="Invalid value 'invalid_solver' for parameter 'tie_solver'",
         ):
-            PyBBT(tie_solver="invalid_solver")
+            BBTTest(tie_solver="invalid_solver")
         with pytest.raises(
             ValueError,
             match="Invalid value 'invalid_prior' for parameter 'hyper_prior'",
         ):
-            PyBBT(hyper_prior="invalid_prior")
+            BBTTest(hyper_prior="invalid_prior")
 
 
-class TestPyBBTFitting:
-    """Test PyBBT model fitting functionality."""
+class TestBBTTestFitting:
+    """Test BBTTest model fitting functionality."""
 
     def test_fit_updates_fitted_property(self, mock_data):
         """Test that fit() updates the fitted property."""
-        model = PyBBT()
+        model = BBTTest()
         assert not model.fitted
         model.fit(mock_data, dataset_col="dataset", draws=50, tune=50, chains=2)
         assert model.fitted
 
     def test_fit_returns_self(self, mock_data):
         """Test that fit() returns self for method chaining."""
-        model = PyBBT()
+        model = BBTTest()
         result = model.fit(
             mock_data, dataset_col="dataset", draws=50, tune=50, chains=2
         )
         assert result is model
 
 
-class TestPyBBTUnfittedErrors:
+class TestBBTTestUnfittedErrors:
     """Test that methods raise errors when called on unfitted models."""
 
     def test_posterior_table_without_fitting_raises_error(self):
         """Test that posterior_table() raises error on unfitted model."""
-        model = PyBBT()
+        model = BBTTest()
         with pytest.raises(
             RuntimeError, match="The model must be fitted before accessing this method"
         ):
@@ -135,7 +135,7 @@ class TestPyBBTUnfittedErrors:
 
     def test_rope_comparison_control_table_without_fitting_raises_error(self):
         """Test that rope_comparison_control_table() raises error on unfitted model."""
-        model = PyBBT()
+        model = BBTTest()
         with pytest.raises(
             RuntimeError, match="The model must be fitted before accessing this method"
         ):
@@ -388,7 +388,7 @@ class TestPosteriorTableInterpretations:
         def mock_get_pwin(*args, **kwargs):
             return samples, names
 
-        monkeypatch.setattr("bbttest.bbt.py_bbt._get_pwin", mock_get_pwin)
+        monkeypatch.setattr("bbttest.tests.bbt.bbt._get_pwin", mock_get_pwin)
 
         result = fitted_model.posterior_table(rope_value=(0.45, 0.55))
 
@@ -430,7 +430,7 @@ class TestPosteriorTableInterpretations:
         def mock_get_pwin(*args, **kwargs):
             return samples, names
 
-        monkeypatch.setattr("bbttest.bbt.py_bbt._get_pwin", mock_get_pwin)
+        monkeypatch.setattr("bbttest.tests.bbt.bbt._get_pwin", mock_get_pwin)
 
         result = fitted_model.posterior_table(
             columns=[
@@ -468,7 +468,7 @@ class TestPosteriorTableStructure:
         def mock_get_pwin(*args, **kwargs):
             return samples, names
 
-        monkeypatch.setattr("bbttest.bbt.py_bbt._get_pwin", mock_get_pwin)
+        monkeypatch.setattr("bbttest.tests.bbt.bbt._get_pwin", mock_get_pwin)
 
         result = fitted_model.posterior_table()
 
@@ -485,7 +485,7 @@ class TestPosteriorTableStructure:
         def mock_get_pwin(*args, **kwargs):
             return samples, names
 
-        monkeypatch.setattr("bbttest.bbt.py_bbt._get_pwin", mock_get_pwin)
+        monkeypatch.setattr("bbttest.tests.bbt.bbt._get_pwin", mock_get_pwin)
 
         result = fitted_model.posterior_table(columns=ALL_PROPERTIES_COLUMNS)
 
@@ -508,7 +508,7 @@ class TestPosteriorTableStructure:
         def mock_get_pwin(*args, **kwargs):
             return samples, names
 
-        monkeypatch.setattr("bbttest.bbt.py_bbt._get_pwin", mock_get_pwin)
+        monkeypatch.setattr("bbttest.tests.bbt.bbt._get_pwin", mock_get_pwin)
 
         result = fitted_model.posterior_table()
 
@@ -532,7 +532,7 @@ class TestPosteriorTableStructure:
         def mock_get_pwin(*args, **kwargs):
             return samples, names
 
-        monkeypatch.setattr("bbttest.bbt.py_bbt._get_pwin", mock_get_pwin)
+        monkeypatch.setattr("bbttest.tests.bbt.bbt._get_pwin", mock_get_pwin)
 
         result = fitted_model.posterior_table(
             columns=["hdi_low", "hdi_high"],
@@ -559,7 +559,7 @@ class TestPosteriorTableStructure:
         def mock_get_pwin(*args, **kwargs):
             return samples, names
 
-        monkeypatch.setattr("bbttest.bbt.py_bbt._get_pwin", mock_get_pwin)
+        monkeypatch.setattr("bbttest.tests.bbt.bbt._get_pwin", mock_get_pwin)
 
         result = fitted_model.posterior_table(
             columns=[

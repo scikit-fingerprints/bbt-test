@@ -45,12 +45,12 @@ df = pd.DataFrame({
 })
 ```
 
-To generate data for BBT model, fit the `PyBBT` model with the dataframe
+To generate data for BBT model, fit the `BBTTest` model with the dataframe
 
 ```python
-from bbttest import PyBBT
+from bbttest import BBTTest
 
-model = PyBBT(
+model = BBTTest(
     local_rope_value=0.01, # Here you can define what is a tie in case of unpaired data, default is None
     # In this case the model will assume that if difference is below 0.01 there's a tie.
 ).fit(
@@ -61,10 +61,10 @@ model = PyBBT(
 
 #### Evaluating BBT when reporting errors
 
-By default BBT assumes that the goal of the evaluation is to maximize the metric (e.g. when reporting F1 score or AUROC). In cases, when metrics reported in the dataframe should be minimized (e.g. RMSE), you can set the parameter `maximize` in `PyBBT` to False:
+By default BBT assumes that the goal of the evaluation is to maximize the metric (e.g. when reporting F1 score or AUROC). In cases, when metrics reported in the dataframe should be minimized (e.g. RMSE), you can set the parameter `maximize` in `BBTTest` to False:
 
 ```python
-model = PyBBT(
+model = BBTTest(
     local_rope_value=0.01,
     maximize=False, # Set to False if the metric should be minimized
 ).fit(
@@ -75,11 +75,11 @@ model = PyBBT(
 
 ### Paired posterior fitting
 
-PyBBT model support two variants of input data for paired case, either a single dataframe with multiple rows per algorithm per dataset, or a pair of dataframes, one defining mean performance per algorithm, and the second with standard deviations.
+BBTTest model supports two variants of input data for paired case, either a single dataframe with multiple rows per algorithm per dataset, or a pair of dataframes, one defining mean performance per algorithm, and the second with standard deviations.
 
 ```python
 import pandas as pd
-from bbttest import PyBBT
+from bbttest import BBTTest
 
 df = pd.DataFrame({
     "dataset": ["ds1", "ds1", "ds1", "ds2", "ds2", "ds2", "ds3", "ds3", "ds3"],
@@ -88,7 +88,7 @@ df = pd.DataFrame({
     "alg3": [0.9, 0.92, 0.91, 0.95, 0.94, 0.96, 0.88, 0.87, 0.89],
 })
 
-model = PyBBT(
+model = BBTTest(
     local_rope_value=0.1, # In this case ties will be counted if the difference is below square root mean of
     # standard deviations multiplied by local_rope_value
 ).fit(
@@ -99,7 +99,7 @@ model = PyBBT(
 
 ### Generating BBT posterior statistics and interpretations
 
-Once you obtained a fitted PyBBT model, you can generate statistic dataframe containing information about every hypothesis (i.e. every pair of algorithms). The table includes general statistics in form of mean and delta values, as well as probabilities of one algorithm being better than the other, or being tied. Additionally, by default the table contains weak and strong interpretations of the results based on ROPE values.
+Once you obtained a fitted BBTTest model, you can generate statistic dataframe containing information about every hypothesis (i.e. every pair of algorithms). The table includes general statistics in form of mean and delta values, as well as probabilities of one algorithm being better than the other, or being tied. Additionally, by default the table contains weak and strong interpretations of the results based on ROPE values.
 
 ```python
 

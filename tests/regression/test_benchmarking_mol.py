@@ -1,7 +1,7 @@
 """
-Regression tests for PyBBT model using molecular embeddings benchmarking data.
+Regression tests for BBTTest model using molecular embeddings benchmarking data.
 
-This test suite validates the PyBBT model's weak interpretation results against
+This test suite validates the BBTTest model's weak interpretation results against
 the ECFP baseline using molecular embeddings benchmarking data from the study
 of pretrained molecular embedding models.
 
@@ -17,7 +17,7 @@ https://arxiv.org/pdf/2508.06199
 Data source:
 https://github.com/scikit-fingerprints/benchmarking_molecular_models/blob/31779f16c004b3fb8aa555ecceb6b95ca71a1d7d/results/arxiv_preprint_2025_08.csv
 
-The tests validate that the PyBBT model correctly identifies:
+The tests validate that the BBTTest model correctly identifies:
 - Better performing models (vs ECFP baseline)
 - Equivalent performing models (within ROPE)
 - Unknown comparisons (insufficient evidence)
@@ -34,7 +34,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from bbttest import PyBBT
+from bbttest import BBTTest
 
 
 @pytest.fixture(scope="module")
@@ -55,7 +55,7 @@ def benchmarking_data():
 @pytest.fixture(scope="module")
 def fitted_model(benchmarking_data):
     """
-    Fit PyBBT model with local_rope_value=0.01.
+    Fit BBTTest model with local_rope_value=0.01.
 
     Parameters
     ----------
@@ -64,10 +64,10 @@ def fitted_model(benchmarking_data):
 
     Returns
     -------
-    PyBBT
-        Fitted PyBBT model instance.
+    BBTTest
+        Fitted BBTTest model instance.
     """
-    model = PyBBT(local_rope_value=0.01, tie_solver="add")
+    model = BBTTest(local_rope_value=0.01, tie_solver="add")
     model.fit(
         benchmarking_data,
         dataset_col="dataset",
@@ -283,8 +283,8 @@ class TestWeakInterpretationAgainstECFP:
 
         Parameters
         ----------
-        fitted_model : PyBBT
-            Fitted PyBBT model fixture.
+        fitted_model : BBTTest
+            Fitted BBTTest model fixture.
         rope : tuple of float
             Region of Practical Equivalence (ROPE) bounds.
         better_models : list of str
@@ -338,8 +338,8 @@ class TestWeakInterpretationAgainstECFP:
 
         Parameters
         ----------
-        fitted_model : PyBBT
-            Fitted PyBBT model fixture.
+        fitted_model : BBTTest
+            Fitted BBTTest model fixture.
         """
         # Given
         expected_dataframe = pd.DataFrame(

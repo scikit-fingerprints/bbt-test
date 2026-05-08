@@ -173,7 +173,7 @@ def _plot_cdd_diagram(
     ax.text(
         0.5,
         min_bar_y - 0.1,
-        "← worse                                    better →",
+        "\u2190 worse                                    better \u2192",
         fontsize=8,
         style="italic",
     )
