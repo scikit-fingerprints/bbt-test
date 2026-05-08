@@ -75,7 +75,7 @@ model = BBTTest(
 
 ### Paired posterior fitting
 
-BBTTest model support two variants of input data for paired case, either a single dataframe with multiple rows per algorithm per dataset, or a pair of dataframes, one defining mean performance per algorithm, and the second with standard deviations.
+BBTTest model supports two variants of input data for paired case, either a single dataframe with multiple rows per algorithm per dataset, or a pair of dataframes, one defining mean performance per algorithm, and the second with standard deviations.
 
 ```python
 import pandas as pd
